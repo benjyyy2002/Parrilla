@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: PageProps<"/ligas/[id]/piloto
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="card flex flex-col items-center gap-0.5 p-3">
-      <span className="text-2xl font-black italic tabular-nums">{value}</span>
-      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="font-display text-2xl font-bold italic tabular-nums">{value}</span>
+      <span className="text-xs text-subtle">{label}</span>
     </div>
   );
 }
@@ -37,14 +37,14 @@ export default async function DriverPage({ params }: PageProps<"/ligas/[id]/pilo
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
       <div>
-        <Link href={`/ligas/${id}`} className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href={`/ligas/${id}`} className="back-link">
           ← {league.data.name}
         </Link>
-        <h1 className="mt-2 text-3xl font-black italic tracking-tight">
+        <h1 className="mt-2 display text-4xl leading-none">
           {profile.driver.name}
-          {isMe && <span className="ml-2 align-middle text-sm font-medium not-italic text-red-400">vos</span>}
+          {isMe && <span className="ml-2 align-middle text-sm font-medium not-italic text-volt">vos</span>}
         </h1>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-muted">
           P{profile.rank} en el campeonato · {standing.points} pts
         </p>
       </div>
@@ -63,9 +63,9 @@ export default async function DriverPage({ params }: PageProps<"/ligas/[id]/pilo
       {profile.rivalries.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="section-title">Duelos cara a cara</h2>
-          <ul className="card flex flex-col divide-y divide-zinc-800 py-1">
+          <ul className="card flex flex-col divide-y divide-line py-1">
             {profile.rivalries.map((r) => {
-              const tone = r.ahead > r.behind ? "text-green-400" : r.ahead < r.behind ? "text-red-400" : "text-zinc-300";
+              const tone = r.ahead > r.behind ? "text-volt" : r.ahead < r.behind ? "text-danger" : "text-fg-2";
               return (
                 <li key={r.rival.id} className="flex items-center justify-between py-2">
                   <Link href={`/ligas/${id}/pilotos/${r.rival.id}`} className="hover:underline">
@@ -78,19 +78,19 @@ export default async function DriverPage({ params }: PageProps<"/ligas/[id]/pilo
               );
             })}
           </ul>
-          <p className="text-xs text-zinc-500">Cuántas veces terminó adelante y atrás de cada uno, en las fechas que corrieron los dos.</p>
+          <p className="text-xs text-subtle">Cuántas veces terminó adelante y atrás de cada uno, en las fechas que corrieron los dos.</p>
         </section>
       )}
 
       {profile.bestLapsByTrack.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="section-title">Mejores vueltas</h2>
-          <ul className="card flex flex-col divide-y divide-zinc-800 py-1">
+          <ul className="card flex flex-col divide-y divide-line py-1">
             {profile.bestLapsByTrack.map((lap) => (
               <li key={lap.track} className="flex items-center justify-between py-2">
                 <span>
                   {lap.track}
-                  <span className="ml-2 text-xs text-zinc-500">{lap.eventName}</span>
+                  <span className="ml-2 text-xs text-subtle">{lap.eventName}</span>
                 </span>
                 <span className="font-bold tabular-nums">{formatLapTime(lap.bestLapMs)}</span>
               </li>
@@ -102,31 +102,31 @@ export default async function DriverPage({ params }: PageProps<"/ligas/[id]/pilo
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Fecha por fecha</h2>
         {history.length === 0 ? (
-          <p className="text-sm text-zinc-400">Todavía no se corrió ninguna fecha.</p>
+          <p className="text-sm text-muted">Todavía no se corrió ninguna fecha.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {history.map((h) => (
               <li key={h.event.id}>
                 <Link
                   href={`/ligas/${id}/fechas/${h.event.id}`}
-                  className="card flex items-center gap-3 py-3 hover:border-zinc-600"
+                  className="card flex items-center gap-3 py-3 hover:border-volt/50"
                 >
                   <span
-                    className={`w-10 text-center text-lg font-black italic ${
-                      h.position === null ? "text-zinc-600" : h.position <= 3 ? "text-red-500" : "text-zinc-300"
+                    className={`w-10 text-center font-display text-lg font-bold italic ${
+                      h.position === null ? "text-faint" : h.position <= 3 ? "text-volt" : "text-fg-2"
                     }`}
                   >
                     {h.position === null ? "—" : `P${h.position}`}
                   </span>
                   <span className="flex-1">
                     <span className="block font-medium">{h.event.name}</span>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-subtle">
                       {formatDate(h.event.held_on)}
                       {h.bestLapMs ? ` · ${formatLapTime(h.bestLapMs)}` : ""}
                       {h.fastestLap ? " ⏱" : ""}
                     </span>
                   </span>
-                  <span className="text-sm font-bold tabular-nums text-zinc-300">
+                  <span className="text-sm font-bold tabular-nums text-fg-2">
                     {h.position === null ? "No corrió" : `+${h.points}`}
                   </span>
                 </Link>

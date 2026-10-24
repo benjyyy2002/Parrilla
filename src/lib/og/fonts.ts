@@ -17,17 +17,19 @@ async function loadGoogleFont(family: string, text: string): Promise<ArrayBuffer
   return response.arrayBuffer();
 }
 
-/** Barlow Condensed para las imágenes. Si falla la descarga, se usa la fuente por defecto. */
+/** Chakra Petch (la misma de los títulos de la app). Si falla la descarga, se usa la fuente por defecto. */
 export async function loadCardFonts(...texts: string[]): Promise<Fonts> {
-  const text = Array.from(new Set(BASE_CHARS + texts.join(""))).join("");
+  // Se bajan mayúsculas y minúsculas porque los títulos van en mayúscula.
+  const all = texts.join("");
+  const text = Array.from(new Set(BASE_CHARS + all + all.toUpperCase())).join("");
   try {
-    const [regular, black] = await Promise.all([
-      loadGoogleFont("Barlow+Condensed:wght@600", text),
-      loadGoogleFont("Barlow+Condensed:ital,wght@1,800", text),
+    const [regular, bold] = await Promise.all([
+      loadGoogleFont("Chakra+Petch:wght@500", text),
+      loadGoogleFont("Chakra+Petch:ital,wght@1,700", text),
     ]);
     return [
-      { name: "Barlow", data: regular, weight: 600, style: "normal" },
-      { name: "Barlow", data: black, weight: 800, style: "italic" },
+      { name: "Chakra", data: regular, weight: 500, style: "normal" },
+      { name: "Chakra", data: bold, weight: 700, style: "italic" },
     ];
   } catch {
     return [];

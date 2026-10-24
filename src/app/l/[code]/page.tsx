@@ -39,9 +39,9 @@ export default async function PublicLeaguePage({ params, searchParams }: PagePro
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
       <div>
         <p className="section-title">Temporada {league.season}</p>
-        <h1 className="mt-1 text-3xl font-black italic tracking-tight">{league.name}</h1>
+        <h1 className="mt-1 display text-4xl leading-none">{league.name}</h1>
         {lastEvent && (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             Última fecha: {lastEvent.name} · {formatDate(lastEvent.held_on)}
           </p>
         )}
@@ -55,9 +55,9 @@ export default async function PublicLeaguePage({ params, searchParams }: PagePro
           <ul className="flex flex-col gap-2">
             {[...league.events].reverse().map((event) => (
               <li key={event.id}>
-                <Link href={`/l/${code}/f/${event.id}`} className="card flex items-center justify-between py-3 hover:border-zinc-600">
+                <Link href={`/l/${code}/f/${event.id}`} className="card flex items-center justify-between py-3 hover:border-volt/50">
                   <span className="font-medium">{event.name}</span>
-                  <span className="text-xs text-zinc-500">{formatDate(event.held_on)}</span>
+                  <span className="text-xs text-subtle">{formatDate(event.held_on)}</span>
                 </Link>
               </li>
             ))}
@@ -72,18 +72,18 @@ export default async function PublicLeaguePage({ params, searchParams }: PagePro
           </Link>
         ) : user ? (
           <form action={joinLeague.bind(null, code)} className="flex flex-col gap-2">
-            <p className="text-sm text-zinc-300">¿Corrés en esta liga? Sumate para elegir tu piloto.</p>
+            <p className="text-sm text-fg-2">¿Corrés en esta liga? Sumate para elegir tu piloto.</p>
             <button className="btn-primary">Unirme a la liga</button>
           </form>
         ) : (
           <>
-            <p className="text-sm text-zinc-300">¿Corrés en esta liga? Entrá con tu mail para sumarte.</p>
+            <p className="text-sm text-fg-2">¿Corrés en esta liga? Entrá con tu mail para sumarte.</p>
             <Link href={`/login?next=${encodeURIComponent(`/l/${code}`)}`} className="btn-primary">
               Sumarme
             </Link>
           </>
         )}
-        {joinError && <p className="text-sm text-red-400">No pudimos sumarte. Probá de nuevo.</p>}
+        {joinError && <p className="text-sm text-danger">No pudimos sumarte. Probá de nuevo.</p>}
       </div>
     </main>
   );

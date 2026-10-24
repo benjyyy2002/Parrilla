@@ -17,7 +17,7 @@ export function JoinProdeForm({ code }: { code: string }) {
           Sumarme
         </button>
       </div>
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
     </form>
   );
 }

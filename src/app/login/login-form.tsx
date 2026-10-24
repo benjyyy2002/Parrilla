@@ -64,11 +64,11 @@ export function LoginForm({ next }: { next: string }) {
     return (
       <div className="card flex flex-col gap-3">
         <p className="text-lg font-semibold">📬 Revisá tu mail</p>
-        <p className="text-sm text-zinc-300">
+        <p className="text-sm text-fg-2">
           Te mandamos un link a <strong>{email}</strong>. Tocalo y listo: vas a entrar en el navegador o el celular donde
           lo abras. Si no aparece, fijate en spam.
         </p>
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
         <div className="flex gap-2">
           <button type="button" className="btn-secondary flex-1 text-sm" onClick={() => sendLink()} disabled={loading}>
             {loading ? "Enviando…" : "Reenviar"}
@@ -89,14 +89,14 @@ export function LoginForm({ next }: { next: string }) {
             type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className="inline-flex items-center justify-center gap-3 rounded-lg bg-white px-4 py-2.5 font-semibold text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-3 rounded-lg bg-white px-4 py-2.5 font-semibold text-ink transition-colors hover:bg-fg-2 disabled:opacity-50"
           >
             <GoogleIcon />
             Continuar con Google
           </button>
 
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
-            <span className="h-px flex-1 bg-zinc-800" />o con tu mail<span className="h-px flex-1 bg-zinc-800" />
+          <div className="flex items-center gap-3 text-xs text-subtle">
+            <span className="h-px flex-1 bg-panel-2" />o con tu mail<span className="h-px flex-1 bg-panel-2" />
           </div>
         </>
       )}
@@ -119,7 +119,7 @@ export function LoginForm({ next }: { next: string }) {
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );
 }

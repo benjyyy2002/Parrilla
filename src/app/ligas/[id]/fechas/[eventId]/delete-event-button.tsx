@@ -10,7 +10,7 @@ export function DeleteEventButton({ leagueId, eventId }: { leagueId: string; eve
         if (!confirm("¿Borrar esta fecha y sus resultados?")) e.preventDefault();
       }}
     >
-      <button className="btn-secondary text-red-400">Borrar</button>
+      <button className="btn-secondary text-danger">Borrar</button>
     </form>
   );
 }

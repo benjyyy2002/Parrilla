@@ -31,5 +31,5 @@ export function SessionFromLink({ next }: { next: string }) {
       });
   }, [next]);
 
-  return <p className="text-center text-zinc-400">{failed ? "No pudimos iniciar sesión…" : "Entrando…"}</p>;
+  return <p className="text-center text-muted">{failed ? "No pudimos iniciar sesión…" : "Entrando…"}</p>;
 }

@@ -27,11 +27,11 @@ export default async function PublicEventPage({ params }: PageProps<"/l/[code]/f
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
       <div>
-        <Link href={`/l/${code}`} className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href={`/l/${code}`} className="back-link">
           ← {league.name}
         </Link>
-        <h1 className="mt-2 text-3xl font-black italic tracking-tight">{event.name}</h1>
-        <p className="text-sm text-zinc-400">
+        <h1 className="mt-2 display text-4xl leading-none">{event.name}</h1>
+        <p className="text-sm text-muted">
           {formatDate(event.held_on)}
           {event.track ? ` · ${event.track}` : ""}
         </p>

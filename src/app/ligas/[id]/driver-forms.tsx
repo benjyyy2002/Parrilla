@@ -22,7 +22,7 @@ export function AddDriversForm({ leagueId }: { leagueId: string }) {
           Agregar
         </button>
       </div>
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
     </form>
   );
 }
@@ -31,7 +31,7 @@ export function ClaimDriverForm({ leagueId, freeDrivers }: { leagueId: string; f
   const [state, formAction, pending] = useActionState(claimDriver.bind(null, leagueId), initialState);
 
   return (
-    <section className="card flex flex-col gap-3 border-red-900/60">
+    <section className="card flex flex-col gap-3 border-volt/30">
       <p className="font-semibold">¿Cuál de estos sos vos?</p>
       {freeDrivers.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -57,7 +57,7 @@ export function ClaimDriverForm({ leagueId, freeDrivers }: { leagueId: string; f
           Sumarme
         </button>
       </form>
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
     </section>
   );
 }

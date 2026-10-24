@@ -6,27 +6,41 @@ import { formatLapTime } from "@/lib/laptime";
 import { computeStandings, eventResults, type EventResultRow } from "@/lib/standings";
 import type { LeagueData, LeagueEvent } from "@/lib/types";
 
+// Misma paleta que la app (src/app/globals.css).
 const C = {
-  bg: "#09090b",
-  panel: "#18181b",
-  border: "#27272a",
-  text: "#f4f4f5",
-  muted: "#a1a1aa",
-  red: "#ef4444",
-  gold: "#facc15",
-  silver: "#d4d4d8",
-  bronze: "#d97706",
-  purple: "#c084fc",
+  bg: "#05070d",
+  panel: "#0b1020",
+  border: "#1b2440",
+  text: "#eef2ff",
+  muted: "#8a96b2",
+  volt: "#c8ff2e",
+  cyan: "#2ee6ff",
+  gold: "#ffd23f",
+  silver: "#c9d3e6",
+  bronze: "#ff9a4d",
+  purple: "#b15cff",
 };
 const PODIUM = [C.gold, C.silver, C.bronze];
 
-const title = { fontFamily: "Barlow", fontWeight: 800, fontStyle: "italic" as const };
-const body = { fontFamily: "Barlow", fontWeight: 600 };
+const title = { fontFamily: "Chakra", fontWeight: 700, fontStyle: "italic" as const, textTransform: "uppercase" as const };
+const body = { fontFamily: "Chakra", fontWeight: 500 };
+
+/** Las tres franjas de velocidad del logo. */
+function Stripes({ height }: { height: number }) {
+  const w = height * 1.5;
+  return (
+    <svg width={w} height={height} viewBox="0 0 30 20">
+      <path d="M7 0h8L8 20H0z" fill={C.volt} />
+      <path d="M17 0h5l-7 20h-5z" fill={C.cyan} />
+      <path d="M24 0h5l-7 20h-5z" fill="rgba(238,242,255,0.5)" />
+    </svg>
+  );
+}
 
 function Brand({ size }: { size: number }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: size * 0.4, fontSize: size, color: C.text, ...title }}>
-      <span>🏁</span>
+    <div style={{ display: "flex", alignItems: "center", gap: size * 0.45, fontSize: size, color: C.text, ...title }}>
+      <Stripes height={size * 0.8} />
       <span>Parrilla</span>
     </div>
   );
@@ -40,15 +54,32 @@ function Frame({ children, padding }: { children: React.ReactNode; padding: numb
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        background: C.bg,
+        backgroundColor: C.bg,
+        // Brillos de color + grilla tenue, como en la app.
+        backgroundImage: [
+          "radial-gradient(circle at 90% 0%, rgba(46,230,255,0.16), transparent 45%)",
+          "radial-gradient(circle at 0% 0%, rgba(200,255,46,0.10), transparent 40%)",
+          "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px)",
+          "linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+        ].join(", "),
+        backgroundSize: "100% 100%, 100% 100%, 48px 48px, 48px 48px",
         color: C.text,
         padding,
         position: "relative",
         ...body,
       }}
     >
-      {/* Franja roja de "largada" a la izquierda */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 16, background: C.red }} />
+      {/* Línea de telemetría arriba */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 0,
+          height: 6,
+          backgroundImage: `linear-gradient(90deg, ${C.volt}, ${C.cyan}, transparent)`,
+        }}
+      />
       {children}
     </div>
   );
@@ -116,7 +147,7 @@ function PodiumStep({ row, place, scale }: { row: EventResultRow | undefined; pl
           marginTop: 12 * scale,
           width: "100%",
           height: heights[place - 1] * scale,
-          background: PODIUM[place - 1],
+          backgroundImage: `linear-gradient(180deg, ${PODIUM[place - 1]}, ${PODIUM[place - 1]}55)`,
           borderRadius: `${12 * scale}px ${12 * scale}px 0 0`,
           color: C.bg,
           fontSize: 72 * scale,
@@ -182,7 +213,7 @@ function StoryRow({ left, name, middle, right, highlight }: { left: string; name
       <span style={{ display: "flex", justifyContent: "flex-end", width: 200, color: C.muted, fontSize: 32 }}>
         {middle ?? ""}
       </span>
-      <span style={{ display: "flex", justifyContent: "flex-end", width: 150, ...title }}>{right}</span>
+      <span style={{ display: "flex", justifyContent: "flex-end", width: 150, color: right.startsWith("+") ? C.volt : C.text, ...title }}>{right}</span>
     </div>
   );
 }
@@ -226,7 +257,7 @@ export function EventStory({ league, event, url }: { league: LeagueData; event: 
 
       {championship.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 48 }}>
-          <span style={{ fontSize: 34, color: C.red, letterSpacing: 4, ...title }}>ASÍ VA EL CAMPEONATO</span>
+          <span style={{ fontSize: 30, color: C.volt, letterSpacing: 6, ...body }}>{"// ASÍ VA EL CAMPEONATO"}</span>
           {championship.map((row, i) => (
             <StoryRow
               key={row.driver.id}

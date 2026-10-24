@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RaceBanner } from "@/components/race-banner";
 import { ShareLink } from "@/components/share-link";
+import { podiumColors } from "@/components/standings-table";
 import { driverName, getGrid } from "@/lib/f1";
 import { getOrigin } from "@/lib/origin";
-import { currentRace, formatRaceTime, getOutcomes, getProdeRaces, getPublicProdeGroup, isLocked } from "@/lib/prode-data";
+import { currentRace, getOutcomes, getProdeRaces, getPublicProdeGroup, isLocked } from "@/lib/prode-data";
 import { prodeStandings, raceKey, scorePrediction } from "@/lib/prode-scoring";
 import { createClient } from "@/lib/supabase/server";
 import { JoinProdeForm } from "./join-form";
@@ -16,7 +18,6 @@ export async function generateMetadata({ params }: PageProps<"/p/[code]">): Prom
   return { title: `${group.name} · Prode F1`, description: `Sumate al prode de F1 "${group.name}" en Parrilla.` };
 }
 
-const podiumColors = ["text-yellow-400", "text-zinc-300", "text-amber-600"];
 
 export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">) {
   const { code } = await params;
@@ -51,76 +52,65 @@ export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">)
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
       <div>
         <p className="section-title">Prode F1</p>
-        <h1 className="mt-1 text-3xl font-black italic tracking-tight">{group.name}</h1>
-        <p className="text-sm text-zinc-400">
+        <h1 className="mt-1 display text-4xl leading-none">{group.name}</h1>
+        <p className="text-sm text-muted">
           {group.members.length} {group.members.length === 1 ? "jugador" : "jugadores"}
         </p>
       </div>
 
       {race && (
-        <section className="card flex flex-col gap-3">
-          <p className="section-title">Fecha {race.round}</p>
-          <p className="text-xl font-black italic">{race.name}</p>
-          <p className="text-sm text-zinc-400">
-            {isLocked(race) ? `Cerrado · larga el ${formatRaceTime(race.race_at)}` : `Cierra el ${formatRaceTime(race.quali_at)}`}
-          </p>
+        <RaceBanner race={race}>
           <div className="flex flex-wrap gap-2">
             {group.members.map((m) => (
-              <span
-                key={m.id}
-                className={`rounded-full px-3 py-1 text-xs ${
-                  predictedNow.has(m.id) ? "bg-green-950 text-green-300" : "bg-zinc-800 text-zinc-500"
-                }`}
-              >
-                {predictedNow.has(m.id) ? "✓ " : ""}
+              <span key={m.id} className={`chip ${predictedNow.has(m.id) ? "border-volt/40 bg-volt/10 text-volt" : ""}`}>
+                {predictedNow.has(m.id) ? "✓ " : "· "}
                 {m.nickname}
               </span>
             ))}
           </div>
           {membership && (
             <Link href={`/prode/carrera/${race.season}/${race.round}`} className="btn-primary">
-              {isLocked(race) ? "Ver mi pronóstico" : "Hacer / editar mi pronóstico"}
+              {isLocked(race) ? "Ver mi pronóstico" : "Hacer mi pronóstico"}
             </Link>
           )}
-        </section>
+        </RaceBanner>
       )}
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Tabla</h2>
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-xs uppercase tracking-wider text-zinc-500">
+        <div className="timing-wrap">
+          <table className="timing">
+            <thead>
               <tr>
-                <th className="w-10 py-2 pl-3 text-left">#</th>
-                <th className="py-2 text-left">Jugador</th>
-                <th className="py-2 text-center" title="Ganadores acertados">
-                  🏆
+                <th className="w-12 py-2.5 pl-4 text-left">Pos</th>
+                <th className="py-2.5 text-left">Jugador</th>
+                <th className="py-2.5 text-center" title="Ganadores acertados">
+                  Gan
                 </th>
-                <th className="py-2 pr-3 text-right">Pts</th>
+                <th className="py-2.5 pr-4 text-right">Pts</th>
               </tr>
             </thead>
             <tbody>
               {standings.map((row, i) => (
-                <tr
-                  key={row.member.id}
-                  className={`border-t border-zinc-800 ${row.member.nickname === membership?.nickname ? "bg-red-950/40" : ""}`}
-                >
-                  <td className={`py-2.5 pl-3 font-bold ${podiumColors[i] ?? "text-zinc-500"}`}>{i + 1}</td>
-                  <td className="py-2.5 font-medium">
-                    {row.member.nickname}
-                    <span className="ml-2 text-xs text-zinc-500">
+                <tr key={row.member.id} className={row.member.nickname === membership?.nickname ? "me-row" : ""}>
+                  <td className={`py-3 pl-4 font-display text-lg font-bold italic ${podiumColors[i] ?? "text-subtle"}`}>
+                    {i + 1}
+                  </td>
+                  <td className="py-3">
+                    <span className="font-medium">{row.member.nickname}</span>
+                    <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-[0.15em] text-subtle">
                       {row.races} {row.races === 1 ? "carrera" : "carreras"}
                     </span>
                   </td>
-                  <td className="py-2.5 text-center text-zinc-400">{row.winners}</td>
-                  <td className="py-2.5 pr-3 text-right text-base font-bold tabular-nums">{row.points}</td>
+                  <td className="py-3 text-center font-mono text-muted">{row.winners}</td>
+                  <td className="py-3 pr-4 text-right font-display text-xl font-bold tabular-nums">{row.points}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         {pastRaces.length === 0 && (
-          <p className="text-xs text-zinc-500">Los puntos aparecen cuando termina la primera carrera del grupo.</p>
+          <p className="text-xs text-subtle">Los puntos aparecen cuando termina la primera carrera del grupo.</p>
         )}
       </section>
 
@@ -139,22 +129,22 @@ export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">)
               <details key={raceKey(r.season, r.round)} className="card">
                 <summary className="cursor-pointer">
                   <span className="font-medium">{r.name}</span>
-                  <span className="ml-2 text-xs text-zinc-500">
+                  <span className="ml-2 text-xs text-subtle">
                     🏆 {driverName(outcome.finish[0], grid)} · pole {driverName(outcome.pole, grid)}
                   </span>
                 </summary>
-                <ul className="mt-3 flex flex-col divide-y divide-zinc-800 text-sm">
+                <ul className="mt-3 flex flex-col divide-y divide-line text-sm">
                   {rows.map(({ member, prediction, score }) => (
                     <li key={member.id} className="flex items-center justify-between gap-3 py-2">
                       <span className="font-medium">{member.nickname}</span>
-                      <span className="flex-1 truncate text-xs text-zinc-500">
+                      <span className="flex-1 truncate text-xs text-subtle">
                         {prediction
                           ? `${[prediction.p1, prediction.p2, prediction.p3].map((d) => driverName(d, grid).split(" ").at(-1)).join(" · ")}${
                               prediction.colapinto_position ? ` · Colapinto P${prediction.colapinto_position}` : ""
                             }`
                           : "No pronosticó"}
                       </span>
-                      <span className="font-bold tabular-nums">{score ? `+${score.total}` : "—"}</span>
+                      <span className="font-display font-bold tabular-nums text-volt">{score ? `+${score.total}` : "—"}</span>
                     </li>
                   ))}
                 </ul>
@@ -173,7 +163,7 @@ export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">)
         <JoinProdeForm code={code} />
       ) : (
         <section className="card flex flex-col gap-3">
-          <p className="text-sm text-zinc-300">¿Querés jugar en este grupo? Entrá con tu cuenta para sumarte.</p>
+          <p className="text-sm text-fg-2">¿Querés jugar en este grupo? Entrá con tu cuenta para sumarte.</p>
           <Link href={`/login?next=${encodeURIComponent(`/p/${code}`)}`} className="btn-primary">
             Sumarme
           </Link>

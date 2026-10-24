@@ -73,7 +73,7 @@ export function EventForm({
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          Kartódromo <span className="text-zinc-500">(opcional)</span>
+          Kartódromo <span className="text-subtle">(opcional)</span>
           <input
             className="input"
             value={track}
@@ -91,12 +91,12 @@ export function EventForm({
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Orden de llegada</h2>
         {rows.length === 0 && (
-          <p className="text-sm text-zinc-400">Tocá a los pilotos abajo en el orden en que cruzaron la meta.</p>
+          <p className="text-sm text-muted">Tocá a los pilotos abajo en el orden en que cruzaron la meta.</p>
         )}
         <ol className="flex flex-col gap-2">
           {rows.map((row, i) => (
             <li key={row.driverId} className="card flex items-center gap-2 p-2">
-              <span className="w-8 text-center text-lg font-black italic text-red-500">{i + 1}</span>
+              <span className="w-8 text-center font-display text-lg font-bold italic text-volt">{i + 1}</span>
               <span className="min-w-0 flex-1 truncate font-medium">{driverName(row.driverId)}</span>
               <input
                 className="input w-24 px-2 py-1.5 text-sm tabular-nums"
@@ -109,12 +109,12 @@ export function EventForm({
                 }
               />
               <div className="flex">
-                <button type="button" className="px-1.5 text-zinc-400 disabled:opacity-20" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Subir">
+                <button type="button" className="px-1.5 text-muted disabled:opacity-20" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Subir">
                   ▲
                 </button>
                 <button
                   type="button"
-                  className="px-1.5 text-zinc-400 disabled:opacity-20"
+                  className="px-1.5 text-muted disabled:opacity-20"
                   onClick={() => move(i, 1)}
                   disabled={i === rows.length - 1}
                   aria-label="Bajar"
@@ -123,7 +123,7 @@ export function EventForm({
                 </button>
                 <button
                   type="button"
-                  className="px-1.5 text-zinc-500 hover:text-red-400"
+                  className="px-1.5 text-subtle hover:text-danger"
                   onClick={() => setRows(rows.filter((_, j) => j !== i))}
                   aria-label="Sacar"
                 >
@@ -136,7 +136,7 @@ export function EventForm({
 
         {waiting.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-subtle">
               {rows.length === 0 ? "Pilotos:" : "Faltan (si alguien no corrió, dejalo acá):"}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export function EventForm({
         )}
       </section>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <button className="btn-primary py-3" disabled={pending || rows.length === 0}>
         {pending ? "Guardando…" : "Guardar fecha"}

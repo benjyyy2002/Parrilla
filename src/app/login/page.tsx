@@ -12,14 +12,14 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-4 py-12">
       <div>
-        <h1 className="text-2xl font-bold">Entrar a Parrilla</h1>
-        <p className="mt-1 text-sm text-zinc-400">
+        <h1 className="display text-3xl leading-none">Entrar a Parrilla</h1>
+        <p className="mt-1 text-sm text-muted">
           {process.env.NEXT_PUBLIC_GOOGLE_LOGIN === "1" ? "Con tu cuenta de Google o con un link por mail." : "Te mandamos un link por mail."}{" "}
           Sin contraseñas.
         </p>
       </div>
       {linkError && (
-        <p className="rounded-lg border border-red-900 bg-red-950/50 p-3 text-sm text-red-200">
+        <p className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">
           No pudimos iniciar sesión (el link puede haber vencido o ya se usó). Probá de nuevo.
         </p>
       )}

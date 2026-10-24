@@ -17,10 +17,10 @@ export default async function NewEventPage({ params }: PageProps<"/ligas/[id]/fe
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
       <div>
-        <Link href={`/ligas/${data.id}`} className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href={`/ligas/${data.id}`} className="back-link">
           ← {data.name}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">Cargar fecha</h1>
+        <h1 className="mt-2 display text-3xl leading-none">Cargar fecha</h1>
       </div>
       <EventForm
         leagueId={data.id}

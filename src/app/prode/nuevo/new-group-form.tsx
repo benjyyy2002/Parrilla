@@ -18,7 +18,7 @@ export function NewGroupForm() {
         Tu nombre en el grupo
         <input className="input" name="nickname" placeholder="Como te van a ver en la tabla" maxLength={30} required />
       </label>
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
       <button className="btn-primary py-3" disabled={pending}>
         {pending ? "Creando…" : "Crear grupo"}
       </button>

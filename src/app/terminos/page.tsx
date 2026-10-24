@@ -6,9 +6,9 @@ export const metadata: Metadata = { title: "Términos de uso" };
 
 export default function TermsPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-10 text-zinc-300">
-      <h1 className="text-2xl font-bold text-zinc-100">Términos de uso</h1>
-      <p className="text-sm text-zinc-500">Última actualización: 24 de octubre de 2026</p>
+    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-5 px-4 py-10 text-fg-2">
+      <h1 className="display text-3xl leading-none">Términos de uso</h1>
+      <p className="text-sm text-subtle">Última actualización: 24 de octubre de 2026</p>
 
       <ul className="flex list-disc flex-col gap-2 pl-5">
         <li>Parrilla es una app gratuita para llevar ligas de karting entre amigos y jugar un prode de F1.</li>
@@ -25,12 +25,12 @@ export default function TermsPage() {
 
       <p>
         Consultas:{" "}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="text-red-400 underline">
+        <a href={`mailto:${CONTACT_EMAIL}`} className="text-volt underline">
           {CONTACT_EMAIL}
         </a>
       </p>
 
-      <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-300">
+      <Link href="/" className="back-link">
         ← Volver
       </Link>
     </main>

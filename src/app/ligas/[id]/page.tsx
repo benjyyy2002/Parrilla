@@ -31,11 +31,11 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
       <div>
-        <Link href="/ligas" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href="/ligas" className="back-link">
           ← Mis ligas
         </Link>
-        <h1 className="mt-2 text-3xl font-black italic tracking-tight">{data.name}</h1>
-        <p className="text-sm text-zinc-400">
+        <h1 className="mt-2 display text-4xl leading-none">{data.name}</h1>
+        <p className="text-sm text-muted">
           Temporada {data.season} · {data.events.length} {data.events.length === 1 ? "fecha" : "fechas"}
         </p>
       </div>
@@ -57,7 +57,7 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
           )}
         </div>
         {events.length === 0 ? (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             {isAdmin ? "Cuando vuelvan del karting, cargá la primera fecha." : "Todavía no se corrió ninguna fecha."}
           </p>
         ) : (
@@ -69,16 +69,16 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
                 <li key={event.id}>
                   <Link
                     href={`/ligas/${data.id}/fechas/${event.id}`}
-                    className="card flex items-center justify-between py-3 hover:border-zinc-600"
+                    className="card flex items-center justify-between py-3 hover:border-volt/50"
                   >
                     <div>
                       <p className="font-medium">{event.name}</p>
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-subtle">
                         {formatDate(event.held_on)}
                         {event.track ? ` · ${event.track}` : ""}
                       </p>
                     </div>
-                    {winnerName && <span className="text-sm text-zinc-300">🏆 {winnerName}</span>}
+                    {winnerName && <span className="text-sm text-fg-2">🏆 {winnerName}</span>}
                   </Link>
                 </li>
               );
@@ -90,26 +90,26 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Invitá al grupo</h2>
         <div className="card">
-          <p className="mb-3 text-sm text-zinc-400">Con este link cualquiera ve la tabla. Para sumarse a la liga, entran con su mail.</p>
+          <p className="mb-3 text-sm text-muted">Con este link cualquiera ve la tabla. Para sumarse a la liga, entran con su mail.</p>
           <ShareLink url={shareUrl} message={`Sumate a la liga "${data.name}" en Parrilla y mirá la tabla:`} />
         </div>
       </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Pilotos ({data.drivers.length})</h2>
-        <ul className="card flex flex-col divide-y divide-zinc-800 py-1">
+        <ul className="card flex flex-col divide-y divide-line py-1">
           {data.drivers.map((driver) => (
             <li key={driver.id} className="flex items-center justify-between py-2">
               <span>
                 <Link href={`/ligas/${data.id}/pilotos/${driver.id}`} className="hover:underline">
                   {driver.name}
                 </Link>
-                {driver.id === myDriverId && <span className="ml-2 text-xs text-red-400">vos</span>}
-                {driver.user_id && driver.id !== myDriverId && <span className="ml-2 text-xs text-zinc-500">con cuenta</span>}
+                {driver.id === myDriverId && <span className="ml-2 text-xs text-volt">vos</span>}
+                {driver.user_id && driver.id !== myDriverId && <span className="ml-2 text-xs text-subtle">con cuenta</span>}
               </span>
               {isAdmin && !racesByDriver.get(driver.id) && driver.id !== myDriverId && (
                 <form action={removeDriver.bind(null, data.id, driver.id)}>
-                  <button className="text-xs text-zinc-500 hover:text-red-400">Quitar</button>
+                  <button className="text-xs text-subtle hover:text-danger">Quitar</button>
                 </form>
               )}
             </li>

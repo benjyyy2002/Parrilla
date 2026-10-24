@@ -41,19 +41,19 @@ export default async function RacePredictionPage({ params }: PageProps<"/prode/c
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
       <div>
-        <Link href="/prode" className="text-sm text-zinc-500 hover:text-zinc-300">
+        <Link href="/prode" className="back-link">
           ← Prode
         </Link>
         <p className="mt-2 section-title">Fecha {race.round}</p>
-        <h1 className="text-3xl font-black italic tracking-tight">{race.name}</h1>
-        <p className="text-sm text-zinc-400">
+        <h1 className="display text-4xl leading-none">{race.name}</h1>
+        <p className="text-sm text-muted">
           {locked ? `Cerrado · larga el ${formatRaceTime(race.race_at)}` : `Cierra el ${formatRaceTime(race.quali_at)}`}
         </p>
       </div>
 
       {!locked ? (
         grid.length === 0 ? (
-          <p className="card text-sm text-zinc-400">No pudimos cargar la lista de pilotos. Probá de nuevo en un rato.</p>
+          <p className="card text-sm text-muted">No pudimos cargar la lista de pilotos. Probá de nuevo en un rato.</p>
         ) : (
           <PredictionForm
             season={season}
@@ -69,11 +69,11 @@ export default async function RacePredictionPage({ params }: PageProps<"/prode/c
           />
         )
       ) : !prediction ? (
-        <p className="card text-sm text-zinc-400">No pronosticaste esta carrera.</p>
+        <p className="card text-sm text-muted">No pronosticaste esta carrera.</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-900 text-xs uppercase tracking-wider text-zinc-500">
+        <div className="timing-wrap">
+          <table className="timing">
+            <thead>
               <tr>
                 <th className="py-2 pl-3 text-left">Pregunta</th>
                 <th className="py-2 text-left">Tu pronóstico</th>
@@ -94,11 +94,11 @@ export default async function RacePredictionPage({ params }: PageProps<"/prode/c
                   pts: score?.colapinto,
                 },
               ].map((row) => (
-                <tr key={row.q} className="border-t border-zinc-800">
-                  <td className="py-2.5 pl-3 text-zinc-400">{row.q}</td>
+                <tr key={row.q}>
+                  <td className="py-2.5 pl-3 text-muted">{row.q}</td>
                   <td className="py-2.5 font-medium">{row.mine}</td>
-                  <td className="py-2.5 text-zinc-300">{row.real ?? ""}</td>
-                  <td className={`py-2.5 pr-3 text-right font-bold tabular-nums ${row.pts ? "text-green-400" : "text-zinc-500"}`}>
+                  <td className="py-2.5 text-fg-2">{row.real ?? ""}</td>
+                  <td className={`py-2.5 pr-3 text-right font-bold tabular-nums ${row.pts ? "text-volt" : "text-subtle"}`}>
                     {row.pts === undefined ? "" : `+${row.pts}`}
                   </td>
                 </tr>
@@ -106,9 +106,9 @@ export default async function RacePredictionPage({ params }: PageProps<"/prode/c
             </tbody>
           </table>
           {score ? (
-            <p className="border-t border-zinc-800 px-3 py-2.5 text-right font-bold">Total: {score.total} pts</p>
+            <p className="border-t border-line px-3 py-2.5 text-right font-bold">Total: {score.total} pts</p>
           ) : (
-            <p className="border-t border-zinc-800 px-3 py-2.5 text-sm text-zinc-400">
+            <p className="border-t border-line px-3 py-2.5 text-sm text-muted">
               Los puntos aparecen cuando se publica el resultado oficial (un rato después de la carrera).
             </p>
           )}

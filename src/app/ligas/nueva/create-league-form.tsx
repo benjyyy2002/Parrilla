@@ -27,9 +27,9 @@ export function CreateLeagueForm({ defaultSeason }: { defaultSeason: string }) {
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        Los demás pilotos <span className="text-zinc-500">(uno por línea, opcional)</span>
+        Los demás pilotos <span className="text-subtle">(uno por línea, opcional)</span>
         <textarea className="input min-h-28" name="drivers" placeholder={"Juan\nSofi\nTomi"} />
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-subtle">
           No necesitan cuenta. Cuando entren con el link, cada uno elige cuál es.
         </span>
       </label>
@@ -42,13 +42,13 @@ export function CreateLeagueForm({ defaultSeason }: { defaultSeason: string }) {
             <input className="input" name="points" defaultValue={F1_POINTS.join(", ")} />
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="fastest_lap_point" defaultChecked className="size-4 accent-red-600" />
+            <input type="checkbox" name="fastest_lap_point" defaultChecked className="size-4 accent-volt" />
             +1 punto para la vuelta más rápida de cada fecha
           </label>
         </div>
       </details>
 
-      {state.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
 
       <button className="btn-primary py-3" disabled={pending}>
         {pending ? "Creando…" : "Crear liga"}

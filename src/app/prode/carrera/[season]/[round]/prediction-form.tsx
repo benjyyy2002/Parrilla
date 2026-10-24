@@ -23,7 +23,7 @@ function DriverSelect({
   return (
     <label className="flex flex-col gap-1 text-sm">
       <span>
-        {label} <span className="text-zinc-500">· {hint}</span>
+        {label} <span className="text-subtle">· {hint}</span>
       </span>
       <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
         <option value="">Elegí un piloto</option>
@@ -80,7 +80,7 @@ export function PredictionForm({
 
       <label className="flex flex-col gap-1 text-sm">
         <span>
-          Posición final de Colapinto <span className="text-zinc-500">· 10 pts exacta, 5 si le errás por uno</span>
+          Posición final de Colapinto <span className="text-subtle">· 10 pts exacta, 5 si le errás por uno</span>
         </span>
         <select className="input" value={values.colapintoPosition} onChange={(e) => set("colapintoPosition")(e.target.value)}>
           <option value="">Elegí una posición</option>
@@ -90,10 +90,10 @@ export function PredictionForm({
             </option>
           ))}
         </select>
-        <span className="text-xs text-zinc-500">Si abandona, cuenta el puesto en que lo clasifican.</span>
+        <span className="text-xs text-subtle">Si abandona, cuenta el puesto en que lo clasifican.</span>
       </label>
 
-      {message && <p className={`text-sm ${message.ok ? "text-green-400" : "text-red-400"}`}>{message.text}</p>}
+      {message && <p className={`text-sm ${message.ok ? "text-volt" : "text-danger"}`}>{message.text}</p>}
 
       <button className="btn-primary py-3" disabled={pending}>
         {pending ? "Guardando…" : "Guardar pronóstico"}

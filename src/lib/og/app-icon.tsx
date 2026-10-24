@@ -1,10 +1,9 @@
 import { ImageResponse } from "next/og";
 import { loadCardFonts } from "./fonts";
 
-/** Ícono de la app: "P" blanca en itálica sobre rojo, con una franja a cuadros (si el tamaño da). */
+/** Ícono de la app: "P" lima en itálica sobre azul noche, con las franjas de velocidad del logo. */
 export async function renderAppIcon(px: number) {
-  const square = px / 12;
-  const showFlag = px >= 96;
+  const detailed = px >= 96;
 
   return new ImageResponse(
     (
@@ -15,33 +14,34 @@ export async function renderAppIcon(px: number) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#dc2626",
+          backgroundColor: "#05070d",
+          ...(detailed && {
+            backgroundImage:
+              "radial-gradient(circle at 80% 10%, rgba(46,230,255,0.28), transparent 55%), radial-gradient(circle at 10% 90%, rgba(200,255,46,0.18), transparent 50%)",
+          }),
           position: "relative",
         }}
       >
-        {showFlag && (
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, display: "flex", flexDirection: "column" }}>
-            {Array.from({ length: 12 }, (_, row) => (
-              <div key={row} style={{ display: "flex" }}>
-                {[0, 1].map((col) => (
-                  <div
-                    key={col}
-                    style={{ width: square, height: square, background: (row + col) % 2 ? "#09090b" : "#fafafa" }}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
+        {detailed && (
+          <svg
+            width={px * 0.42}
+            height={px * 0.28}
+            viewBox="0 0 30 20"
+            style={{ position: "absolute", left: px * 0.1, bottom: px * 0.16 }}
+          >
+            <path d="M17 0h5l-7 20h-5z" fill="#2ee6ff" />
+            <path d="M24 0h5l-7 20h-5z" fill="rgba(238,242,255,0.5)" />
+          </svg>
         )}
         <span
           style={{
-            fontFamily: "Barlow",
-            fontWeight: 800,
+            fontFamily: "Chakra",
+            fontWeight: 700,
             fontStyle: "italic",
-            fontSize: px * 0.72,
-            color: "#fafafa",
-            marginLeft: showFlag ? square * 2 : 0,
+            fontSize: px * 0.74,
+            color: "#c8ff2e",
             lineHeight: 1,
+            marginLeft: detailed ? px * 0.08 : 0,
           }}
         >
           P

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { currentRace, formatRaceTime, getProdeRaces, isLocked } from "@/lib/prode-data";
+import { RaceBanner } from "@/components/race-banner";
+import { currentRace, getProdeRaces, isLocked } from "@/lib/prode-data";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Prode F1" };
@@ -33,30 +34,22 @@ export default async function ProdePage() {
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
-      <h1 className="text-2xl font-bold">Prode F1</h1>
+      <div>
+        <p className="section-title">Fórmula 1 · {race?.season ?? new Date().getFullYear()}</p>
+        <h1 className="display mt-1 text-4xl leading-none">Prode</h1>
+      </div>
 
       {race ? (
-        <section className="card flex flex-col gap-3 border-red-900/60">
-          <p className="section-title">Próxima carrera · Fecha {race.round}</p>
-          <div>
-            <p className="text-2xl font-black italic">{race.name}</p>
-            <p className="text-sm text-zinc-400">{race.circuit}</p>
-          </div>
-          {isLocked(race) ? (
-            <p className="text-sm text-zinc-300">
-              Pronósticos cerrados. Larga el {formatRaceTime(race.race_at)}.
-            </p>
-          ) : (
-            <p className="text-sm text-zinc-300">
-              Cierra el <strong>{formatRaceTime(race.quali_at)}</strong> (cuando empieza la clasificación).
-            </p>
+        <RaceBanner race={race}>
+          {myPrediction && !isLocked(race) && (
+            <p className="font-mono text-[11px] uppercase tracking-[0.15em] text-volt">✓ Ya pronosticaste esta carrera</p>
           )}
           <Link href={`/prode/carrera/${race.season}/${race.round}`} className="btn-primary">
-            {isLocked(race) ? "Ver mi pronóstico" : myPrediction ? "Editar mi pronóstico ✓" : "Hacer mi pronóstico"}
+            {isLocked(race) ? "Ver mi pronóstico" : myPrediction ? "Editar mi pronóstico" : "Hacer mi pronóstico"}
           </Link>
-        </section>
+        </RaceBanner>
       ) : (
-        <p className="card text-sm text-zinc-400">No hay carreras cargadas por ahora. ¡Nos vemos la próxima temporada!</p>
+        <p className="card text-sm text-muted">No hay carreras cargadas por ahora. ¡Nos vemos la próxima temporada!</p>
       )}
 
       <section className="flex flex-col gap-3">
@@ -67,7 +60,7 @@ export default async function ProdePage() {
           </Link>
         </div>
         {!memberships || memberships.length === 0 ? (
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             Armá un grupo con tu familia o tus amigos, o pedile a alguien el link del suyo. Tu pronóstico vale para todos tus
             grupos.
           </p>
@@ -78,9 +71,9 @@ export default async function ProdePage() {
               if (!group) return null;
               return (
                 <li key={group.invite_code}>
-                  <Link href={`/p/${group.invite_code}`} className="card flex items-center justify-between py-3 hover:border-zinc-600">
+                  <Link href={`/p/${group.invite_code}`} className="card flex items-center justify-between py-3 hover:border-volt/50">
                     <span className="font-medium">{group.name}</span>
-                    <span className="text-xs text-zinc-500">como {m.nickname} →</span>
+                    <span className="text-xs text-subtle">como {m.nickname} →</span>
                   </Link>
                 </li>
               );
@@ -89,8 +82,8 @@ export default async function ProdePage() {
         )}
       </section>
 
-      <section className="card text-sm text-zinc-400">
-        <p className="mb-2 font-semibold text-zinc-200">Cómo se juega</p>
+      <section className="card text-sm text-muted">
+        <p className="mb-2 font-semibold text-fg">Cómo se juega</p>
         <ul className="flex list-disc flex-col gap-1 pl-5">
           <li>Pole: 5 puntos.</li>
           <li>Ganador: 10 puntos.</li>
