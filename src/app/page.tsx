@@ -44,7 +44,19 @@ export default function Home() {
         ))}
       </section>
 
-      <p className="text-sm text-zinc-500">Próximamente: prode para cada carrera y carga de resultados con una foto.</p>
+      <section className="card flex flex-col gap-3 border-red-900/60">
+        <p className="section-title">Nuevo · Prode F1</p>
+        <h2 className="text-2xl font-black italic">Entre fecha y fecha, pronosticá la F1.</h2>
+        <p className="text-sm text-zinc-400">
+          Pole, podio y en qué puesto termina Colapinto. Armá un grupo con tu familia o tus amigos: los puntos se calculan
+          solos con el resultado oficial.
+        </p>
+        <div>
+          <Link href="/prode" className="btn-secondary">
+            Jugar al prode
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

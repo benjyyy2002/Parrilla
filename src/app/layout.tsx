@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { SessionHashRedirect } from "@/components/session-hash-redirect";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -38,9 +39,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               🏁 Parrilla
             </Link>
             {user ? (
-              <form action="/auth/salir" method="post">
-                <button className="text-sm text-zinc-400 hover:text-zinc-100">Salir</button>
-              </form>
+              <nav className="flex items-center gap-4 text-sm">
+                <Link href="/ligas" className="text-zinc-300 hover:text-white">
+                  Ligas
+                </Link>
+                <Link href="/prode" className="text-zinc-300 hover:text-white">
+                  Prode
+                </Link>
+                <form action="/auth/salir" method="post">
+                  <button className="text-zinc-500 hover:text-zinc-100">Salir</button>
+                </form>
+              </nav>
             ) : (
               <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-100">
                 Entrar
@@ -49,6 +58,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         {children}
+        <footer className="border-t border-zinc-900">
+          <div className="mx-auto flex w-full max-w-2xl gap-4 px-4 py-4 text-xs text-zinc-600">
+            <Link href="/privacidad" className="hover:text-zinc-400">
+              Privacidad
+            </Link>
+            <Link href="/terminos" className="hover:text-zinc-400">
+              Términos
+            </Link>
+          </div>
+        </footer>
+        <SessionHashRedirect />
       </body>
     </html>
   );

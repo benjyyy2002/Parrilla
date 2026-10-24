@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-export function ShareLink({ url, leagueName }: { url: string; leagueName: string }) {
+/** Link para compartir: botón de WhatsApp (con mensaje armado) y botón de copiar. */
+export function ShareLink({ url, message }: { url: string; message: string }) {
   const [copied, setCopied] = useState(false);
-  const message = `Sumate a la liga "${leagueName}" en Parrilla y mirá la tabla: ${url}`;
 
   async function copy() {
     await navigator.clipboard.writeText(url);
@@ -18,7 +18,7 @@ export function ShareLink({ url, leagueName }: { url: string; leagueName: string
       <div className="flex gap-2">
         <a
           className="btn-primary flex-1 bg-green-600 hover:bg-green-500"
-          href={`https://wa.me/?text=${encodeURIComponent(message)}`}
+          href={`https://wa.me/?text=${encodeURIComponent(`${message} ${url}`)}`}
           target="_blank"
           rel="noopener noreferrer"
         >

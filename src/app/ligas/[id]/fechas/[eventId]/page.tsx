@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EventResultsTable } from "@/components/event-results-table";
+import { ShareLink } from "@/components/share-link";
 import { formatDate } from "@/lib/dates";
-import { formatLapTime } from "@/lib/laptime";
 import { getMemberLeague } from "@/lib/league-data";
-import { eventPoints, fastestLapDriverIds } from "@/lib/standings";
+import { getOrigin } from "@/lib/origin";
+import { eventResults } from "@/lib/standings";
 import { EventForm } from "../event-form";
 import { DeleteEventButton } from "./delete-event-button";
 
@@ -20,10 +22,10 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
   const event = data.events.find((e) => e.id === eventId);
   if (!event) notFound();
 
-  const results = data.results.filter((r) => r.event_id === event.id).sort((a, b) => a.position - b.position);
-  const points = eventPoints(data, results);
-  const fastest = data.fastest_lap_point ? fastestLapDriverIds(results) : new Set<string>();
-  const driverName = (driverId: string) => data.drivers.find((d) => d.id === driverId)?.name ?? "?";
+  const rows = eventResults(data, event.id);
+  const publicPath = `/l/${data.invite_code}/f/${event.id}`;
+  const publicUrl = `${await getOrigin()}${publicPath}`;
+  const winner = rows[0];
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
@@ -47,37 +49,25 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
             name: event.name,
             track: event.track ?? "",
             heldOn: event.held_on,
-            results: results.map((r) => ({ driverId: r.driver_id, bestLapMs: r.best_lap_ms })),
+            results: rows.map((r) => ({ driverId: r.driver.id, bestLapMs: r.bestLapMs })),
           }}
         />
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
-            <table className="w-full text-sm">
-              <thead className="bg-zinc-900 text-xs uppercase tracking-wider text-zinc-500">
-                <tr>
-                  <th className="w-10 py-2 pl-3 text-left">#</th>
-                  <th className="py-2 text-left">Piloto</th>
-                  <th className="py-2 text-right">Mejor vuelta</th>
-                  <th className="py-2 pr-3 text-right">Pts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r) => (
-                  <tr key={r.driver_id} className="border-t border-zinc-800">
-                    <td className="py-2.5 pl-3 font-bold text-zinc-400">{r.position}</td>
-                    <td className="py-2.5 font-medium">{driverName(r.driver_id)}</td>
-                    <td className="py-2.5 text-right tabular-nums text-zinc-300">
-                      {r.best_lap_ms ? formatLapTime(r.best_lap_ms) : "—"}
-                      {fastest.has(r.driver_id) && <span className="ml-1 text-purple-400">⏱</span>}
-                    </td>
-                    <td className="py-2.5 pr-3 text-right font-bold tabular-nums">+{points.get(r.driver_id) ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {fastest.size > 0 && <p className="text-xs text-zinc-500">⏱ Vuelta más rápida (+1 punto)</p>}
+          <EventResultsTable rows={rows} />
+
+          <section className="card flex flex-col gap-3">
+            <h2 className="section-title">Compartir resultado</h2>
+            <ShareLink
+              url={publicUrl}
+              message={
+                winner ? `🏁 ${event.name} de "${data.name}": ganó ${winner.driver.name}.` : `🏁 ${event.name} de "${data.name}":`
+              }
+            />
+            <a href={`${publicPath}/historia`} download={`parrilla-${event.name}.png`} className="btn-secondary">
+              Descargar imagen para historias
+            </a>
+          </section>
 
           {isAdmin && (
             <div className="flex gap-2">

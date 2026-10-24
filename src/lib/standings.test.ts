@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeStandings, eventPoints, fastestLapDriverIds } from "./standings";
+import { computeStandings, eventPoints, eventResults, fastestLapDriverIds } from "./standings";
 import { F1_POINTS, type LeagueData } from "./types";
 
 function league(overrides: Partial<LeagueData> = {}): LeagueData {
@@ -115,5 +115,24 @@ describe("computeStandings", () => {
   it("los pilotos sin carreras aparecen con 0", () => {
     const rows = computeStandings(league());
     expect(rows.every((r) => r.points === 0 && r.races === 0)).toBe(true);
+  });
+});
+
+describe("eventResults", () => {
+  it("devuelve la fecha en orden de llegada con puntos y vuelta rápida", () => {
+    const rows = eventResults(
+      league({
+        results: [
+          { event_id: "f1", driver_id: "caro", position: 2, best_lap_ms: 44000 },
+          { event_id: "f1", driver_id: "ana", position: 1, best_lap_ms: 45000 },
+          { event_id: "f2", driver_id: "beto", position: 1, best_lap_ms: 43000 },
+        ],
+      }),
+      "f1",
+    );
+    expect(rows.map((r) => [r.position, r.driver.name, r.points, r.fastestLap])).toEqual([
+      [1, "Ana", 25, false],
+      [2, "Caro", 19, true],
+    ]);
   });
 });

@@ -44,7 +44,7 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Campeonato</h2>
-        <StandingsTable rows={standings} highlightDriverId={myDriverId} />
+        <StandingsTable rows={standings} highlightDriverId={myDriverId} driverHrefPrefix={`/ligas/${data.id}/pilotos/`} />
       </section>
 
       <section className="flex flex-col gap-3">
@@ -91,7 +91,7 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
         <h2 className="section-title">Invitá al grupo</h2>
         <div className="card">
           <p className="mb-3 text-sm text-zinc-400">Con este link cualquiera ve la tabla. Para sumarse a la liga, entran con su mail.</p>
-          <ShareLink url={shareUrl} leagueName={data.name} />
+          <ShareLink url={shareUrl} message={`Sumate a la liga "${data.name}" en Parrilla y mirá la tabla:`} />
         </div>
       </section>
 
@@ -101,7 +101,9 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
           {data.drivers.map((driver) => (
             <li key={driver.id} className="flex items-center justify-between py-2">
               <span>
-                {driver.name}
+                <Link href={`/ligas/${data.id}/pilotos/${driver.id}`} className="hover:underline">
+                  {driver.name}
+                </Link>
                 {driver.id === myDriverId && <span className="ml-2 text-xs text-red-400">vos</span>}
                 {driver.user_id && driver.id !== myDriverId && <span className="ml-2 text-xs text-zinc-500">con cuenta</span>}
               </span>

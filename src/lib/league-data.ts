@@ -1,10 +1,15 @@
+import { cache } from "react";
+import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import type { LeagueData, LeagueEvent, Result } from "@/lib/types";
 
-type EventRow = LeagueEvent & { results: Result[] };
+type EventRow = LeagueEvent & { created_at: string; results: Result[] };
 
-/** Liga completa para un miembro (respeta RLS). Devuelve null si no existe o no sos miembro. */
-export async function getMemberLeague(leagueId: string) {
+/**
+ * Liga completa para un miembro (respeta RLS). Devuelve null si no existe o no sos miembro.
+ * Con `cache`, generateMetadata y la página comparten una sola consulta por request.
+ */
+export const getMemberLeague = cache(async (leagueId: string) => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,7 +20,7 @@ export async function getMemberLeague(leagueId: string) {
     supabase
       .from("leagues")
       .select(
-        "id, name, season, points, fastest_lap_point, invite_code, drivers(id, name, user_id), events(id, name, track, held_on, results(event_id, driver_id, position, best_lap_ms))",
+        "id, name, season, points, fastest_lap_point, invite_code, drivers(id, name, user_id), events(id, name, track, held_on, created_at, results(event_id, driver_id, position, best_lap_ms))",
       )
       .eq("id", leagueId)
       .maybeSingle(),
@@ -24,8 +29,9 @@ export async function getMemberLeague(leagueId: string) {
 
   if (!league) return null;
 
+  // Mismo orden que la vista pública: por día y, si hay dos el mismo día, por cuál se cargó primero.
   const events = (league.events as EventRow[]).sort(
-    (a, b) => a.held_on.localeCompare(b.held_on) || a.id.localeCompare(b.id),
+    (a, b) => a.held_on.localeCompare(b.held_on) || a.created_at.localeCompare(b.created_at),
   );
   const data: LeagueData = {
     id: league.id,
@@ -44,12 +50,12 @@ export async function getMemberLeague(leagueId: string) {
     isAdmin: membership?.role === "admin",
     myDriverId: data.drivers.find((d) => d.user_id === user.id)?.id ?? null,
   };
-}
+});
 
 /** Liga por código de invitación, para el link público (sin iniciar sesión). */
-export async function getPublicLeague(code: string): Promise<LeagueData | null> {
-  const supabase = await createClient();
+export const getPublicLeague = cache(async (code: string): Promise<LeagueData | null> => {
+  const supabase = createPublicClient();
   const { data, error } = await supabase.rpc("public_league", { p_code: code });
   if (error || !data) return null;
   return data as LeagueData;
-}
+});

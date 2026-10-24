@@ -71,6 +71,36 @@ export function computeStandings(data: LeagueData): StandingRow[] {
   return [...rows.values()].sort(compareRows);
 }
 
+export type EventResultRow = {
+  position: number;
+  driver: Driver;
+  bestLapMs: number | null;
+  points: number;
+  fastestLap: boolean;
+};
+
+/** Resultados de una fecha, en orden de llegada, con los puntos que sumó cada uno. */
+export function eventResults(data: LeagueData, eventId: string): EventResultRow[] {
+  const results = data.results.filter((r) => r.event_id === eventId).sort((a, b) => a.position - b.position);
+  const points = eventPoints(data, results);
+  const fastest = data.fastest_lap_point ? fastestLapDriverIds(results) : new Set<string>();
+  const drivers = new Map(data.drivers.map((d) => [d.id, d]));
+
+  return results.flatMap((r) => {
+    const driver = drivers.get(r.driver_id);
+    if (!driver) return [];
+    return [
+      {
+        position: r.position,
+        driver,
+        bestLapMs: r.best_lap_ms,
+        points: points.get(r.driver_id) ?? 0,
+        fastestLap: fastest.has(r.driver_id),
+      },
+    ];
+  });
+}
+
 function compareRows(a: StandingRow, b: StandingRow): number {
   if (a.points !== b.points) return b.points - a.points;
   const depth = Math.max(a.finishes.length, b.finishes.length);

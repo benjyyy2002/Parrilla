@@ -1,8 +1,18 @@
+import Link from "next/link";
 import type { StandingRow } from "@/lib/standings";
 
 const podiumColors = ["text-yellow-400", "text-zinc-300", "text-amber-600"];
 
-export function StandingsTable({ rows, highlightDriverId }: { rows: StandingRow[]; highlightDriverId?: string | null }) {
+export function StandingsTable({
+  rows,
+  highlightDriverId,
+  driverHrefPrefix,
+}: {
+  rows: StandingRow[];
+  highlightDriverId?: string | null;
+  /** Si viene, cada nombre linkea a `${driverHrefPrefix}${driver.id}`. */
+  driverHrefPrefix?: string;
+}) {
   if (rows.length === 0) {
     return <p className="text-sm text-zinc-400">Todavía no hay pilotos en la liga.</p>;
   }
@@ -34,7 +44,13 @@ export function StandingsTable({ rows, highlightDriverId }: { rows: StandingRow[
             >
               <td className={`py-2.5 pl-3 font-bold ${podiumColors[i] ?? "text-zinc-500"}`}>{i + 1}</td>
               <td className="py-2.5 font-medium">
-                {row.driver.name}
+                {driverHrefPrefix ? (
+                  <Link href={`${driverHrefPrefix}${row.driver.id}`} className="hover:underline">
+                    {row.driver.name}
+                  </Link>
+                ) : (
+                  row.driver.name
+                )}
                 <span className="ml-2 text-xs text-zinc-500">
                   {row.races} {row.races === 1 ? "fecha" : "fechas"}
                 </span>

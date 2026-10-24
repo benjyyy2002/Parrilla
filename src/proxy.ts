@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Refresca la sesión de Supabase en cada request y protege /ligas.
+// Refresca la sesión de Supabase en cada request y protege /ligas y /prode.
 export async function proxy(request: NextRequest) {
   // Si la URL de redirección no está habilitada en Supabase, el link del mail
   // cae en la home con ?code=...: lo mandamos a donde se canjea la sesión.
@@ -36,16 +36,20 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && request.nextUrl.pathname.startsWith("/ligas")) {
+  const { pathname } = request.nextUrl;
+  if (!user && (pathname.startsWith("/ligas") || pathname.startsWith("/prode"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.search = `?next=${encodeURIComponent(request.nextUrl.pathname)}`;
+    url.search = `?next=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
 
   return response;
 }
 
+// Las imágenes (íconos, vistas previas, historias) no necesitan sesión: el proxy no corre ahí.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|icon|apple-icon|manifest.webmanifest|.*opengraph-image|.*/historia$|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+  ],
 };

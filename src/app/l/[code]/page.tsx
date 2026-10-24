@@ -49,6 +49,22 @@ export default async function PublicLeaguePage({ params, searchParams }: PagePro
 
       <StandingsTable rows={standings} />
 
+      {league.events.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="section-title">Fechas</h2>
+          <ul className="flex flex-col gap-2">
+            {[...league.events].reverse().map((event) => (
+              <li key={event.id}>
+                <Link href={`/l/${code}/f/${event.id}`} className="card flex items-center justify-between py-3 hover:border-zinc-600">
+                  <span className="font-medium">{event.name}</span>
+                  <span className="text-xs text-zinc-500">{formatDate(event.held_on)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <div className="card flex flex-col gap-3">
         {membership ? (
           <Link href={`/ligas/${league.id}`} className="btn-primary">
