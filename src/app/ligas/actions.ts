@@ -3,6 +3,9 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { PhotoReadError, readResultsPhoto } from "@/lib/ai/gemini";
+import { getMemberLeague } from "@/lib/league-data";
+import { matchDrivers } from "@/lib/match-drivers";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionState = { error: string | null };
@@ -150,4 +153,48 @@ export async function joinLeague(code: string) {
   const { data: leagueId, error } = await supabase.rpc("join_league", { p_code: code });
   if (error) redirect(`/l/${code}?error=1`);
   redirect(`/ligas/${leagueId}`);
+}
+
+export type PhotoResult =
+  | { error: string }
+  | {
+      error: null;
+      /** Filas para el formulario, en orden de llegada. */
+      rows: { driverId: string; lap: string }[];
+      /** Nombres de la planilla que no coinciden con ningún piloto de la liga. */
+      unmatched: string[];
+    };
+
+const MAX_PHOTO_BYTES = 2.5 * 1024 * 1024;
+
+/** Lee una foto de la planilla con IA y devuelve el orden de llegada para completar el formulario. */
+export async function readEventPhoto(leagueId: string, formData: FormData): Promise<PhotoResult> {
+  const league = await getMemberLeague(leagueId);
+  if (!league?.isAdmin) return { error: "Solo el admin de la liga puede cargar fechas." };
+
+  const photo = formData.get("photo");
+  if (!(photo instanceof File) || !photo.type.startsWith("image/")) return { error: "Elegí una foto." };
+  if (photo.size > MAX_PHOTO_BYTES) return { error: "La foto es muy pesada. Probá con otra." };
+
+  try {
+    const read = await readResultsPhoto(
+      { base64: Buffer.from(await photo.arrayBuffer()).toString("base64"), mimeType: photo.type },
+      league.data.drivers.map((d) => d.name),
+    );
+    if (read.length === 0) return { error: "No encontramos resultados en la foto. Probá con una más nítida." };
+
+    const matches = matchDrivers(read, league.data.drivers);
+    return {
+      error: null,
+      rows: read.flatMap((row, i) => {
+        const driver = matches[i];
+        return driver ? [{ driverId: driver.id, lap: row.bestLap?.replace(",", ".") ?? "" }] : [];
+      }),
+      unmatched: read.filter((_, i) => !matches[i]).map((row) => row.name),
+    };
+  } catch (error) {
+    if (error instanceof PhotoReadError) return { error: error.message };
+    console.error(error);
+    return { error: "No pudimos leer la foto. Probá de nuevo o cargala a mano." };
+  }
 }

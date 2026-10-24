@@ -85,9 +85,16 @@ body::before {
   100% { opacity: 0.15; text-shadow: none }
 }
 
+/* Brillo que cruza el botón de WhatsApp. */
+@keyframes shine {
+  0% { transform: translateX(-150%) skewX(-20deg) }
+  55%, 100% { transform: translateX(450%) skewX(-20deg) }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .start-light,
-  .start-go {
+  .start-go,
+  .btn-whatsapp::after {
     animation: none !important;
   }
 }
@@ -150,6 +157,18 @@ body::before {
   }
   .me-row {
     @apply bg-volt/[0.06] shadow-[inset_3px_0_0_var(--color-volt)];
+  }
+
+  .btn-whatsapp {
+    @apply relative inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-whatsapp px-5 py-4 font-display text-base font-bold uppercase tracking-[0.12em] text-ink shadow-[0_0_36px_-6px_rgb(37_211_102/0.65)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_44px_-4px_rgb(37_211_102/0.8)] active:translate-y-0;
+  }
+  .btn-whatsapp::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent);
+    animation: shine 3.2s ease-in-out infinite;
   }
 
   .chip {

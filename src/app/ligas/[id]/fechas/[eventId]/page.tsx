@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isGeminiConfigured } from "@/lib/ai/gemini";
 import { EventResultsTable } from "@/components/event-results-table";
 import { ShareLink } from "@/components/share-link";
 import { formatDate } from "@/lib/dates";
 import { getMemberLeague } from "@/lib/league-data";
-import { getOrigin } from "@/lib/origin";
+import { SITE_URL } from "@/lib/site";
 import { eventResults } from "@/lib/standings";
 import { EventForm } from "../event-form";
 import { DeleteEventButton } from "./delete-event-button";
@@ -24,7 +25,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
 
   const rows = eventResults(data, event.id);
   const publicPath = `/l/${data.invite_code}/f/${event.id}`;
-  const publicUrl = `${await getOrigin()}${publicPath}`;
+  const publicUrl = `${SITE_URL}${publicPath}`;
   const winner = rows[0];
 
   return (
@@ -45,6 +46,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
           leagueId={data.id}
           eventId={event.id}
           drivers={data.drivers}
+          photoEnabled={isGeminiConfigured()}
           initial={{
             name: event.name,
             track: event.track ?? "",

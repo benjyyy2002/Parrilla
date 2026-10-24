@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { formatLapTime, parseLapTime } from "@/lib/laptime";
 import type { Driver } from "@/lib/types";
 import { saveEvent, type EventInput } from "../../actions";
+import { PhotoImport } from "./photo-import";
 
 type Row = { driverId: string; lap: string };
 
@@ -19,11 +20,14 @@ export function EventForm({
   eventId,
   drivers,
   initial,
+  photoEnabled = false,
 }: {
   leagueId: string;
   eventId: string | null;
   drivers: Driver[];
   initial: EventFormInitial;
+  /** Muestra el botón de cargar desde foto (solo si Gemini está configurado). */
+  photoEnabled?: boolean;
 }) {
   const [name, setName] = useState(initial.name);
   const [track, setTrack] = useState(initial.track);
@@ -90,6 +94,7 @@ export function EventForm({
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Orden de llegada</h2>
+        {photoEnabled && <PhotoImport leagueId={leagueId} onImport={setRows} />}
         {rows.length === 0 && (
           <p className="text-sm text-muted">Tocá a los pilotos abajo en el orden en que cruzaron la meta.</p>
         )}

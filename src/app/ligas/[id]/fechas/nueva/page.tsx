@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isGeminiConfigured } from "@/lib/ai/gemini";
 import { todayInArgentina } from "@/lib/dates";
 import { getMemberLeague } from "@/lib/league-data";
 import { EventForm } from "../event-form";
@@ -26,6 +27,7 @@ export default async function NewEventPage({ params }: PageProps<"/ligas/[id]/fe
         leagueId={data.id}
         eventId={null}
         drivers={data.drivers}
+        photoEnabled={isGeminiConfigured()}
         initial={{ name: `Fecha ${data.events.length + 1}`, track: "", heldOn: todayInArgentina(), results: [] }}
       />
     </main>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { NavLink } from "@/components/nav-link";
 import { SessionHashRedirect } from "@/components/session-hash-redirect";
+import { SITE_URL } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -25,6 +26,8 @@ const chakra = Chakra_Petch({
 });
 
 export const metadata: Metadata = {
+  // Las imágenes de vista previa (WhatsApp) siempre con la dirección pública.
+  metadataBase: new URL(SITE_URL),
   title: { default: "Parrilla · Tu liga de karting", template: "%s · Parrilla" },
   description: "Armá el campeonato de karting con tus amigos y jugá el prode de F1: la tabla se arma sola.",
 };

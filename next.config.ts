@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Las fotos de planillas se achican en el navegador (~0,5 MB), pero dejamos margen.
+    serverActions: { bodySizeLimit: "3mb" },
+  },
 };
 
 export default nextConfig;

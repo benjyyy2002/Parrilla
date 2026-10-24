@@ -5,7 +5,7 @@ import { ShareLink } from "@/components/share-link";
 import { StandingsTable } from "@/components/standings-table";
 import { formatDate } from "@/lib/dates";
 import { getMemberLeague } from "@/lib/league-data";
-import { getOrigin } from "@/lib/origin";
+import { SITE_URL } from "@/lib/site";
 import { computeStandings } from "@/lib/standings";
 import { removeDriver } from "../actions";
 import { AddDriversForm, ClaimDriverForm } from "./driver-forms";
@@ -24,7 +24,7 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
   const { data, isAdmin, myDriverId } = league;
   const standings = computeStandings(data);
   const racesByDriver = new Map(standings.map((r) => [r.driver.id, r.races]));
-  const shareUrl = `${await getOrigin()}/l/${data.invite_code}`;
+  const shareUrl = `${SITE_URL}/l/${data.invite_code}`;
   const freeDrivers = data.drivers.filter((d) => !d.user_id);
   const events = [...data.events].reverse();
 

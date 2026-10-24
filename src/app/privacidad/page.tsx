@@ -36,6 +36,11 @@ export default function PrivacyPage() {
           Usamos Supabase para la base de datos y el inicio de sesión, y Vercel para alojar la app. Los resultados oficiales
           de F1 se consultan a una API pública; no le mandamos ningún dato tuyo.
         </p>
+        <p>
+          Si usás “Cargar desde foto”, la foto de la planilla y los nombres de los pilotos de esa liga se envían a Google
+          Gemini para leer los resultados. Google puede usar ese contenido para mejorar sus servicios. Si preferís que no,
+          cargá la fecha a mano.
+        </p>
       </section>
 
       <section className="flex flex-col gap-2">

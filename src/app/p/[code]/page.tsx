@@ -5,7 +5,7 @@ import { RaceBanner } from "@/components/race-banner";
 import { ShareLink } from "@/components/share-link";
 import { podiumColors } from "@/components/standings-table";
 import { driverName, getGrid } from "@/lib/f1";
-import { getOrigin } from "@/lib/origin";
+import { SITE_URL } from "@/lib/site";
 import { currentRace, getOutcomes, getProdeRaces, getPublicProdeGroup, isLocked } from "@/lib/prode-data";
 import { prodeStandings, raceKey, scorePrediction } from "@/lib/prode-scoring";
 import { createClient } from "@/lib/supabase/server";
@@ -46,7 +46,7 @@ export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">)
     race ? group.predictions.filter((p) => p.season === race.season && p.round === race.round).map((p) => p.member_id) : [],
   );
   const pastRaces = races.filter((r) => outcomes.has(raceKey(r.season, r.round))).reverse();
-  const shareUrl = `${await getOrigin()}/p/${code}`;
+  const shareUrl = `${SITE_URL}/p/${code}`;
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
