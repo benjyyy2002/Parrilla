@@ -7,7 +7,8 @@ import { ShareLink } from "@/components/share-link";
 import { formatDate } from "@/lib/dates";
 import { getMemberLeague } from "@/lib/league-data";
 import { SITE_URL } from "@/lib/site";
-import { eventResults } from "@/lib/standings";
+import { eventResultMessage } from "@/lib/share-messages";
+import { computeStandings, eventResults } from "@/lib/standings";
 import { EventForm } from "../event-form";
 import { DeleteEventButton } from "./delete-event-button";
 
@@ -26,7 +27,6 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
   const rows = eventResults(data, event.id);
   const publicPath = `/l/${data.invite_code}/f/${event.id}`;
   const publicUrl = `${SITE_URL}${publicPath}`;
-  const winner = rows[0];
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
@@ -62,9 +62,12 @@ export default async function EventPage({ params, searchParams }: PageProps<"/li
             <h2 className="section-title">Compartir resultado</h2>
             <ShareLink
               url={publicUrl}
-              message={
-                winner ? `🏁 ${event.name} de "${data.name}": ganó ${winner.driver.name}.` : `🏁 ${event.name} de "${data.name}":`
-              }
+              message={eventResultMessage({
+                league: data.name,
+                event: event.name,
+                rows,
+                leader: computeStandings(data)[0],
+              })}
             />
             <a href={`${publicPath}/historia`} download={`parrilla-${event.name}.png`} className="btn-secondary">
               Descargar imagen para historias

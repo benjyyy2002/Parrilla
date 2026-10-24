@@ -11,13 +11,24 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+/** Muestra el texto como lo hace WhatsApp: respeta los saltos de línea y pasa *esto* a negrita. */
+function WhatsAppText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\*[^*\n]+\*)/g).map((part, i) =>
+        part.startsWith("*") && part.endsWith("*") && part.length > 2 ? <strong key={i}>{part.slice(1, -1)}</strong> : part,
+      )}
+    </>
+  );
+}
+
 /**
  * Bloque para compartir por WhatsApp: muestra cómo le va a llegar el mensaje al grupo,
- * un botón grande para mandarlo y otro para copiar el link.
+ * un botón grande para mandarlo y otro para copiar el link. El link va al final, en su propia línea.
  */
 export function ShareLink({ url, message }: { url: string; message: string }) {
   const [copied, setCopied] = useState(false);
-  const text = `${message} ${url}`;
+  const text = `${message}\n${url}`;
 
   async function copy() {
     await navigator.clipboard.writeText(url);
@@ -30,8 +41,10 @@ export function ShareLink({ url, message }: { url: string; message: string }) {
       {/* Vista previa: una burbuja como la de WhatsApp */}
       <div className="flex flex-col gap-1.5">
         <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-subtle">Así le llega al grupo</span>
-        <div className="relative ml-auto max-w-[92%] rounded-xl rounded-tr-sm bg-[#005c4b] px-3 py-2 text-sm leading-snug text-[#e9edef] shadow-lg">
-          {message} <span className="break-all text-[#53bdeb] underline">{displayUrl(url)}</span>
+        <div className="relative ml-auto max-w-[92%] rounded-xl rounded-tr-sm bg-[#005c4b] px-3 py-2 text-sm leading-snug whitespace-pre-line text-[#e9edef] shadow-lg">
+          <WhatsAppText text={message} />
+          {"\n"}
+          <span className="break-all text-[#53bdeb] underline">{displayUrl(url)}</span>
           <span className="mt-1 block text-right text-[10px] text-[#e9edef]/60">ahora ✓✓</span>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { StandingsTable } from "@/components/standings-table";
 import { formatDate } from "@/lib/dates";
 import { getMemberLeague } from "@/lib/league-data";
 import { SITE_URL } from "@/lib/site";
+import { leagueInviteMessage } from "@/lib/share-messages";
 import { computeStandings } from "@/lib/standings";
 import { removeDriver } from "../actions";
 import { AddDriversForm, ClaimDriverForm } from "./driver-forms";
@@ -91,7 +92,10 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
         <h2 className="section-title">Invitá al grupo</h2>
         <div className="card">
           <p className="mb-3 text-sm text-muted">Con este link cualquiera ve la tabla. Para sumarse a la liga, entran con su mail.</p>
-          <ShareLink url={shareUrl} message={`Sumate a la liga "${data.name}" en Parrilla y mirá la tabla:`} />
+          <ShareLink
+            url={shareUrl}
+            message={leagueInviteMessage({ name: data.name, eventsCount: data.events.length, leader: standings[0] })}
+          />
         </div>
       </section>
 

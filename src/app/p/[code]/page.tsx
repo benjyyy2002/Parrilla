@@ -6,8 +6,9 @@ import { ShareLink } from "@/components/share-link";
 import { podiumColors } from "@/components/standings-table";
 import { driverName, getGrid } from "@/lib/f1";
 import { SITE_URL } from "@/lib/site";
-import { currentRace, getOutcomes, getProdeRaces, getPublicProdeGroup, isLocked } from "@/lib/prode-data";
+import { currentRace, formatRaceTime, getOutcomes, getProdeRaces, getPublicProdeGroup, isLocked } from "@/lib/prode-data";
 import { prodeStandings, raceKey, scorePrediction } from "@/lib/prode-scoring";
+import { prodeInviteMessage } from "@/lib/share-messages";
 import { createClient } from "@/lib/supabase/server";
 import { JoinProdeForm } from "./join-form";
 
@@ -157,7 +158,13 @@ export default async function ProdeGroupPage({ params }: PageProps<"/p/[code]">)
       {membership ? (
         <section className="card flex flex-col gap-3">
           <h2 className="section-title">Invitá al grupo</h2>
-          <ShareLink url={shareUrl} message={`Sumate a nuestro prode de F1 "${group.name}" en Parrilla:`} />
+          <ShareLink
+            url={shareUrl}
+            message={prodeInviteMessage({
+              group: group.name,
+              nextRace: race && !isLocked(race) ? { name: race.name, closes: formatRaceTime(race.quali_at) } : null,
+            })}
+          />
         </section>
       ) : user ? (
         <JoinProdeForm code={code} />
