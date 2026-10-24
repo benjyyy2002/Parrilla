@@ -49,7 +49,13 @@ export function ShareLink({ url, message }: { url: string; message: string }) {
         </div>
       </div>
 
-      <a className="btn-whatsapp" href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+      {/* api.whatsapp.com y no wa.me: wa.me redirige y en el camino rompe los emojis (quedan como "�"). */}
+      <a
+        className="btn-whatsapp"
+        href={`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         <WhatsAppIcon className="relative z-10 size-6" />
         <span className="relative z-10">Mandar por WhatsApp</span>
       </a>
