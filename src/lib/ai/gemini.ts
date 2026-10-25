@@ -22,8 +22,9 @@ type ModelInfo = { name: string; supportedGenerationMethods?: string[] };
 let cachedModel: string | null = null;
 
 /**
- * Elige el modelo: GEMINI_MODEL si está configurado; si no, el alias "flash-latest" o el Flash
- * más nuevo que ofrezca la cuenta. Así no se rompe cuando Google cambia los nombres.
+ * Elige el modelo: GEMINI_MODEL si está configurado; si no, "flash-lite-latest" (en las pruebas leyó
+ * las planillas igual de bien que Flash pero en ~2 s, contra más de un minuto del Flash en el plan
+ * gratis), después "flash-latest" o el Flash más nuevo. Así no se rompe cuando Google cambia los nombres.
  */
 async function pickModel(apiKey: string): Promise<string> {
   if (process.env.GEMINI_MODEL) return process.env.GEMINI_MODEL;
@@ -42,7 +43,8 @@ async function pickModel(apiKey: string): Promise<string> {
     .filter((n) => /^gemini-\d+(\.\d+)?-flash$/.test(n))
     .sort((a, b) => version(b) - version(a));
 
-  const model = names.includes("gemini-flash-latest") ? "gemini-flash-latest" : plainFlash[0];
+  const preferred = ["gemini-flash-lite-latest", "gemini-flash-latest"].find((n) => names.includes(n));
+  const model = preferred ?? plainFlash[0];
   if (!model) throw new Error("Gemini: no hay ningún modelo Flash disponible para esta API key");
   cachedModel = model;
   return model;
