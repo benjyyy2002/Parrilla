@@ -20,7 +20,7 @@ export const getMemberLeague = cache(async (leagueId: string) => {
     supabase
       .from("leagues")
       .select(
-        "id, name, season, points, fastest_lap_point, invite_code, drivers(id, name, user_id), events(id, name, track, held_on, created_at, results(event_id, driver_id, position, best_lap_ms))",
+        "id, name, season, points, fastest_lap_point, invite_code, owner_id, drivers(id, name, user_id), events(id, name, track, held_on, created_at, results(event_id, driver_id, position, best_lap_ms))",
       )
       .eq("id", leagueId)
       .maybeSingle(),
@@ -48,6 +48,8 @@ export const getMemberLeague = cache(async (leagueId: string) => {
   return {
     data,
     isAdmin: membership?.role === "admin",
+    /** Solo quien creó la liga la puede borrar. */
+    isOwner: league.owner_id === user.id,
     myDriverId: data.drivers.find((d) => d.user_id === user.id)?.id ?? null,
   };
 });

@@ -164,7 +164,15 @@ export type PhotoRow = {
   driverId: string | null;
 };
 
-export type PhotoResult = { error: string } | { error: null; rows: PhotoRow[] };
+export type PhotoResult =
+  | { error: string }
+  | {
+      error: null;
+      rows: PhotoRow[];
+      /** Día de la carrera (AAAA-MM-DD) y kartódromo, si la planilla los muestra. */
+      date: string | null;
+      track: string | null;
+    };
 
 const MAX_PHOTO_BYTES = 2.5 * 1024 * 1024;
 
@@ -178,10 +186,11 @@ export async function readEventPhoto(leagueId: string, formData: FormData): Prom
   if (photo.size > MAX_PHOTO_BYTES) return { error: "La foto es muy pesada. Probá con otra." };
 
   try {
-    const read = await readResultsPhoto(
+    const reading = await readResultsPhoto(
       { base64: Buffer.from(await photo.arrayBuffer()).toString("base64"), mimeType: photo.type },
       league.data.drivers.map((d) => d.name),
     );
+    const read = reading.rows;
     if (read.length === 0) return { error: "No encontramos resultados en la foto. Probá con una más nítida." };
 
     const matches = matchDrivers(read, league.data.drivers);
@@ -192,6 +201,8 @@ export async function readEventPhoto(leagueId: string, formData: FormData): Prom
         lap: row.bestLap?.replace(",", ".") ?? "",
         driverId: matches[i]?.id ?? null,
       })),
+      date: reading.date,
+      track: reading.track ? tidyName(reading.track, 80) : null,
     };
   } catch (error) {
     if (error instanceof PhotoReadError) return { error: error.message };
@@ -236,4 +247,83 @@ export async function addPhotoDrivers(
       return created ? [{ readName: d.readName, id: created.id, name: created.name }] : [];
     }),
   };
+}
+
+// ─── Ajustes de la liga ──────────────────────────────────────────────────────
+
+export type SettingsState = { error: string | null; saved?: boolean };
+
+export async function updateLeague(leagueId: string, _prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  const name = String(formData.get("name") ?? "").trim();
+  const season = String(formData.get("season") ?? "").trim();
+  const points = parsePoints(String(formData.get("points") ?? ""));
+
+  if (!name) return { error: "Ponele un nombre a la liga." };
+  if (!season) return { error: "Poné la temporada." };
+  if (!points) return { error: "Los puntos tienen que ser números separados por coma, por ejemplo 25, 18, 15." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leagues")
+    .update({ name, season, points, fastest_lap_point: formData.get("fastest_lap_point") === "on" })
+    .eq("id", leagueId)
+    .select("id");
+  if (error) return { error: friendlyError(error) };
+  if (!data?.length) return { error: "Solo el admin de la liga puede cambiar los ajustes." };
+
+  revalidatePath(`/ligas/${leagueId}`);
+  return { error: null, saved: true };
+}
+
+/** Renombra pilotos: el formulario manda un campo "driver:<id>" por cada uno. */
+export async function renameDrivers(leagueId: string, _prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  const league = await getMemberLeague(leagueId);
+  if (!league?.isAdmin) return { error: "Solo el admin de la liga puede renombrar pilotos." };
+
+  const changes = league.data.drivers.flatMap((driver) => {
+    const value = formData.get(`driver:${driver.id}`);
+    if (typeof value !== "string") return [];
+    const name = value.replace(/\s+/g, " ").trim().slice(0, 40);
+    return name && name !== driver.name ? [{ id: driver.id, name }] : [];
+  });
+  if (changes.length === 0) return { error: null, saved: true };
+
+  const names = changes.map((c) => c.name.toLowerCase());
+  const unchanged = league.data.drivers.filter((d) => !changes.some((c) => c.id === d.id)).map((d) => d.name.toLowerCase());
+  if (new Set(names).size !== names.length || names.some((n) => unchanged.includes(n))) {
+    return { error: "Hay dos pilotos con el mismo nombre." };
+  }
+
+  const supabase = await createClient();
+  // De a uno: si dos pilotos intercambian nombres, el índice único podría chocar, así que primero
+  // se les pone un nombre temporal a todos los que cambian.
+  for (const change of changes) {
+    const { error } = await supabase.from("drivers").update({ name: `~${change.id.slice(0, 8)}` }).eq("id", change.id);
+    if (error) return { error: friendlyError(error) };
+  }
+  for (const change of changes) {
+    const { error } = await supabase.from("drivers").update({ name: change.name }).eq("id", change.id);
+    if (error) return { error: friendlyError(error) };
+  }
+
+  revalidatePath(`/ligas/${leagueId}`);
+  return { error: null, saved: true };
+}
+
+export async function deleteLeague(leagueId: string, _prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  const league = await getMemberLeague(leagueId);
+  if (!league?.isOwner) return { error: "Solo quien creó la liga la puede borrar." };
+
+  const confirmation = String(formData.get("confirm") ?? "").trim().toLowerCase();
+  if (confirmation !== league.data.name.trim().toLowerCase()) {
+    return { error: "Escribí el nombre de la liga tal cual para confirmar." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("leagues").delete().eq("id", leagueId).select("id");
+  if (error) return { error: friendlyError(error) };
+  if (!data?.length) return { error: "No se pudo borrar la liga." };
+
+  revalidatePath("/ligas");
+  redirect("/ligas");
 }

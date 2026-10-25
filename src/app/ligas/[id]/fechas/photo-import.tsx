@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
+import { formatDate } from "@/lib/dates";
 import type { Driver } from "@/lib/types";
 import { addPhotoDrivers, readEventPhoto, type PhotoRow } from "../../actions";
 
@@ -26,13 +27,18 @@ async function shrink(file: File): Promise<Blob> {
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
+export type PhotoDetails = { date: string | null; track: string | null };
+
 export function PhotoImport({
   leagueId,
   onImport,
+  onDetails,
 }: {
   leagueId: string;
   /** Recibe el orden de llegada para el formulario y, si se sumaron, los pilotos nuevos. */
   onImport: (rows: ImportedRow[], addedDrivers?: Driver[]) => void;
+  /** Recibe el día y el kartódromo que figuran en la planilla (si figuran). */
+  onDetails?: (details: PhotoDetails) => void;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +48,7 @@ export function PhotoImport({
   /** Índices (en photoRows) de los pilotos sin liga que el usuario quiere sumar. */
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [addedCount, setAddedCount] = useState(0);
+  const [details, setDetails] = useState<PhotoDetails>({ date: null, track: null });
 
   const unmatched = (photoRows ?? []).map((row, i) => ({ row, i })).filter(({ row }) => !row.driverId);
   const matchedCount = (photoRows ?? []).length - unmatched.length;
@@ -62,6 +69,8 @@ export function PhotoImport({
         return;
       }
       setPhotoRows(result.rows);
+      setDetails({ date: result.date, track: result.track });
+      onDetails?.({ date: result.date, track: result.track });
       setSelected(new Set(result.rows.flatMap((row, i) => (row.driverId ? [] : [i]))));
       onImport(result.rows.flatMap((row) => (row.driverId ? [{ driverId: row.driverId, lap: row.lap }] : [])));
     });
@@ -138,6 +147,14 @@ export function PhotoImport({
             .{addedCount > 0 && ` Sumamos ${plural(addedCount, "piloto nuevo", "pilotos nuevos")} a la liga.`} Revisá el
             orden y las vueltas antes de guardar.
           </p>
+
+          {(details.date || details.track) && (
+            <p className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs text-muted">
+              {details.date && <span>📅 {formatDate(details.date)}</span>}
+              {details.track && <span>📍 {details.track}</span>}
+              <span className="text-subtle">· completado arriba</span>
+            </p>
+          )}
 
           {unmatched.length > 0 && (
             <div className="flex flex-col gap-2 border-t border-volt/20 pt-3">

@@ -83,6 +83,25 @@ check("B no puede reclamar un segundo piloto", !!r.error, r);
 r = await as(B, "delete from public.events where league_id = $1 returning id", [leagueId]);
 check("B (miembro, no admin) no puede borrar fechas", r.rows?.length === 0, r);
 
+// ── Ajustes y borrado de liga ────────────────────────────────────────────────
+r = await as(B, "update public.leagues set name = 'Hackeada' where id = $1 returning id", [leagueId]);
+check("B (miembro) no puede cambiar el nombre de la liga", r.rows?.length === 0, r);
+r = await as(B, "update public.drivers set name = 'Otro' where id = $1 returning id", [benja]);
+check("B (miembro) no puede renombrar pilotos", r.rows?.length === 0, r);
+r = await as(A, "update public.leagues set name = 'Jueves 2', points = '{10,5}' where id = $1 returning name", [leagueId]);
+check("A (admin) cambia nombre y puntos", r.rows?.[0]?.name === "Jueves 2", r);
+r = await as(A, "update public.drivers set name = 'Benjamín' where id = $1 returning name", [benja]);
+check("A (admin) renombra un piloto", r.rows?.[0]?.name === "Benjamín", r);
+r = await as(B, "delete from public.leagues where id = $1 returning id", [leagueId]);
+check("B no puede borrar la liga", r.rows?.length === 0, r);
+r = await as(A, "delete from public.leagues where id = $1 returning id", [leagueId]);
+check("A (dueño) borra la liga", r.rows?.length === 1, r);
+r = await db.query(
+  "select (select count(*) from public.drivers where league_id = $1)::int as drivers, (select count(*) from public.events where league_id = $1)::int as events, (select count(*) from public.league_members where league_id = $1)::int as members",
+  [leagueId],
+);
+check("al borrar la liga se borran pilotos, fechas y miembros", JSON.stringify(r.rows[0]) === '{"drivers":0,"events":0,"members":0}', r.rows);
+
 // ── Prode ────────────────────────────────────────────────────────────────────
 r = await as(A, "select public.create_prode_group('Familia', 'Benja') as id");
 check("A crea un grupo de prode", !r.error, r);

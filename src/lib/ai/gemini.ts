@@ -54,6 +54,8 @@ const SCHEMA = {
   type: "OBJECT",
   properties: {
     is_results_sheet: { type: "BOOLEAN" },
+    race_date: { type: "STRING", nullable: true },
+    track: { type: "STRING", nullable: true },
     rows: {
       type: "ARRAY",
       items: {
@@ -82,6 +84,10 @@ Extraé cada piloto con:
 - best_lap: la mejor vuelta exactamente como está escrita (por ejemplo "45.123" o "1:02.345"), si aparece.
 - league_driver: cuál de estos pilotos de la liga es, solo si estás bastante seguro; si no, null: ${JSON.stringify(driverNames)}
 
+Además:
+- race_date: el día de la carrera en formato AAAA-MM-DD, si aparece. Las fechas están escritas día/mes/año (formato argentino): "25/9/2026" es "2026-09-25". Si no aparece, null.
+- track: el nombre del kartódromo o circuito, si aparece escrito (encabezado, logo legible). No confundas la categoría o tipo de tanda ("ALQUILER", "CARRERA 10", "ADULTOS") con el nombre del kartódromo. Si no se lee, null.
+
 Reglas:
 - No inventes nada. Si una fila no se lee, salteala.
 - Si hay varias tandas o tablas, usá la de la carrera final (la de posiciones, no la de clasificación).
@@ -95,15 +101,32 @@ type GeminiResponse = {
 
 export class PhotoReadError extends Error {}
 
+export type PhotoReading = {
+  rows: PhotoRow[];
+  /** Día de la carrera (AAAA-MM-DD) si la planilla lo muestra. */
+  date: string | null;
+  /** Kartódromo, si la planilla lo muestra. */
+  track: string | null;
+};
+
+/** Acepta solo fechas AAAA-MM-DD que existan de verdad (descarta "2026-02-31" y cosas raras). */
+function validDate(value: string | null): string | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, m, d] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const ok = date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d && y >= 2000 && y <= 2100;
+  return ok ? value : null;
+}
+
 /** Normaliza la respuesta del modelo (puede venir con filas raras o incompletas). */
-export function parsePhotoResponse(json: unknown): PhotoRow[] {
-  const data = json as { is_results_sheet?: boolean; rows?: Record<string, unknown>[] };
+export function parsePhotoResponse(json: unknown): PhotoReading {
+  const data = json as { is_results_sheet?: boolean; race_date?: unknown; track?: unknown; rows?: Record<string, unknown>[] };
   if (data?.is_results_sheet === false) {
     throw new PhotoReadError("La foto no parece una planilla de resultados.");
   }
   const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
-  return (data?.rows ?? [])
+  const rows = (data?.rows ?? [])
     .map((row) => ({
       position: Number(row.position),
       name: text(row.name) ?? "",
@@ -113,12 +136,14 @@ export function parsePhotoResponse(json: unknown): PhotoRow[] {
     }))
     .filter((row) => Number.isInteger(row.position) && row.position > 0 && row.name)
     .sort((a, b) => a.position - b.position);
+
+  return { rows, date: validDate(text(data?.race_date)), track: text(data?.track)?.slice(0, 80) ?? null };
 }
 
 export async function readResultsPhoto(
   image: { base64: string; mimeType: string },
   driverNames: string[],
-): Promise<PhotoRow[]> {
+): Promise<PhotoReading> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new PhotoReadError("La lectura de fotos no está configurada.");
 

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { formatLapTime, parseLapTime } from "@/lib/laptime";
 import type { Driver } from "@/lib/types";
 import { saveEvent, type EventInput } from "../../actions";
-import { PhotoImport } from "./photo-import";
+import { PhotoImport, type PhotoDetails } from "./photo-import";
 
 type Row = { driverId: string; lap: string };
 
@@ -43,6 +43,13 @@ export function EventForm({
 
   const driverName = (id: string) => allDrivers.find((d) => d.id === id)?.name ?? "?";
   const waiting = allDrivers.filter((d) => !rows.some((r) => r.driverId === d.id));
+
+  // Día y kartódromo de la planilla: el día se reemplaza (por defecto es hoy) y el kartódromo
+  // solo se completa si no escribiste uno.
+  function importDetails({ date, track: photoTrack }: PhotoDetails) {
+    if (date) setHeldOn(date);
+    if (photoTrack) setTrack((current) => current.trim() || photoTrack);
+  }
 
   function importRows(imported: Row[], added: Driver[] = []) {
     if (added.length) setAddedDrivers((prev) => [...prev, ...added]);
@@ -102,7 +109,7 @@ export function EventForm({
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Orden de llegada</h2>
-        {photoEnabled && <PhotoImport leagueId={leagueId} onImport={importRows} />}
+        {photoEnabled && <PhotoImport leagueId={leagueId} onImport={importRows} onDetails={importDetails} />}
         {rows.length === 0 && (
           <p className="text-sm text-muted">Tocá a los pilotos abajo en el orden en que cruzaron la meta.</p>
         )}

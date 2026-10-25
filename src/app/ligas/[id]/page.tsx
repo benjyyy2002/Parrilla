@@ -32,9 +32,16 @@ export default async function LeaguePage({ params }: PageProps<"/ligas/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-4 py-8">
       <div>
-        <Link href="/ligas" className="back-link">
-          ← Mis ligas
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link href="/ligas" className="back-link">
+            ← Mis ligas
+          </Link>
+          {isAdmin && (
+            <Link href={`/ligas/${data.id}/ajustes`} className="back-link">
+              ⚙ Ajustes
+            </Link>
+          )}
+        </div>
         <h1 className="mt-2 display text-4xl leading-none">{data.name}</h1>
         <p className="text-sm text-muted">
           Temporada {data.season} · {data.events.length} {data.events.length === 1 ? "fecha" : "fechas"}
