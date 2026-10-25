@@ -1,7 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { readEventPhoto } from "../../actions";
+import type { Driver } from "@/lib/types";
+import { addPhotoDrivers, readEventPhoto, type PhotoRow } from "../../actions";
 
 type ImportedRow = { driverId: string; lap: string };
 
@@ -22,20 +24,32 @@ async function shrink(file: File): Promise<Blob> {
   }
 }
 
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
 export function PhotoImport({
   leagueId,
   onImport,
 }: {
   leagueId: string;
-  onImport: (rows: ImportedRow[]) => void;
+  /** Recibe el orden de llegada para el formulario y, si se sumaron, los pilotos nuevos. */
+  onImport: (rows: ImportedRow[], addedDrivers?: Driver[]) => void;
 }) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ ok: boolean; text: string; unmatched?: string[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [photoRows, setPhotoRows] = useState<PhotoRow[] | null>(null);
+  /** Índices (en photoRows) de los pilotos sin liga que el usuario quiere sumar. */
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [addedCount, setAddedCount] = useState(0);
+
+  const unmatched = (photoRows ?? []).map((row, i) => ({ row, i })).filter(({ row }) => !row.driverId);
+  const matchedCount = (photoRows ?? []).length - unmatched.length;
 
   function handleFile(file: File | undefined) {
     if (!file) return;
-    setMessage(null);
+    setError(null);
+    setAddedCount(0);
     startTransition(async () => {
       const formData = new FormData();
       formData.append("photo", await shrink(file), "planilla.jpg");
@@ -43,15 +57,45 @@ export function PhotoImport({
       if (inputRef.current) inputRef.current.value = "";
 
       if (result.error !== null) {
-        setMessage({ ok: false, text: result.error });
+        setPhotoRows(null);
+        setError(result.error);
         return;
       }
-      onImport(result.rows);
-      setMessage({
-        ok: true,
-        text: `Leímos ${result.rows.length} ${result.rows.length === 1 ? "piloto" : "pilotos"}. Revisá el orden y las vueltas antes de guardar.`,
-        unmatched: result.unmatched,
-      });
+      setPhotoRows(result.rows);
+      setSelected(new Set(result.rows.flatMap((row, i) => (row.driverId ? [] : [i]))));
+      onImport(result.rows.flatMap((row) => (row.driverId ? [{ driverId: row.driverId, lap: row.lap }] : [])));
+    });
+  }
+
+  function toggle(i: number) {
+    const next = new Set(selected);
+    if (next.has(i)) next.delete(i);
+    else next.add(i);
+    setSelected(next);
+  }
+
+  function addSelected() {
+    if (!photoRows || selected.size === 0) return;
+    setError(null);
+    startTransition(async () => {
+      const names = [...selected].map((i) => photoRows[i].name);
+      const result = await addPhotoDrivers(leagueId, names);
+      if (result.error !== null) {
+        setError(result.error);
+        return;
+      }
+
+      const byReadName = new Map(result.drivers.map((d) => [d.readName, d.id]));
+      const updated = photoRows.map((row) => ({ ...row, driverId: row.driverId ?? byReadName.get(row.name) ?? null }));
+      setPhotoRows(updated);
+      setSelected(new Set());
+      setAddedCount(result.drivers.length);
+      onImport(
+        updated.flatMap((row) => (row.driverId ? [{ driverId: row.driverId, lap: row.lap }] : [])),
+        result.drivers.map((d) => ({ id: d.id, name: d.name, user_id: null })),
+      );
+      // Actualiza la lista de pilotos del resto de la página.
+      router.refresh();
     });
   }
 
@@ -71,7 +115,7 @@ export function PhotoImport({
         disabled={pending}
         onClick={() => inputRef.current?.click()}
       >
-        {pending ? (
+        {pending && !photoRows ? (
           <>
             <span className="size-2 animate-pulse rounded-full bg-volt" /> Leyendo la planilla…
           </>
@@ -80,18 +124,49 @@ export function PhotoImport({
         )}
       </button>
 
-      {message && (
-        <div
-          className={`rounded-lg border p-3 text-sm ${
-            message.ok ? "border-volt/30 bg-volt/5 text-fg-2" : "border-danger/40 bg-danger/10 text-danger"
-          }`}
-        >
-          <p>{message.text}</p>
-          {message.unmatched && message.unmatched.length > 0 && (
-            <p className="mt-1 text-xs text-muted">
-              No reconocimos: <strong className="text-fg-2">{message.unmatched.join(", ")}</strong>. Si corrieron,
-              agregalos a la liga en “Pilotos” o sumalos abajo a mano.
-            </p>
+      {error && <p className="rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">{error}</p>}
+
+      {photoRows && (
+        <div className="flex flex-col gap-3 rounded-lg border border-volt/30 bg-volt/5 p-3 text-sm">
+          <p className="text-fg-2">
+            📋 Leímos <strong className="text-fg">{plural(photoRows.length, "piloto", "pilotos")}</strong> en la planilla
+            {matchedCount > 0 && (
+              <>
+                {" "}· <strong className="text-volt">{matchedCount} de tu liga</strong>
+              </>
+            )}
+            .{addedCount > 0 && ` Sumamos ${plural(addedCount, "piloto nuevo", "pilotos nuevos")} a la liga.`} Revisá el
+            orden y las vueltas antes de guardar.
+          </p>
+
+          {unmatched.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-volt/20 pt-3">
+              <p className="text-fg-2">
+                <strong className="text-fg">{plural(unmatched.length, "piloto no está", "pilotos no están")}</strong> en tu
+                liga. Marcá los que son del grupo para sumarlos (si alguno es de otra tanda, desmarcalo):
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {unmatched.map(({ row, i }) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => toggle(i)}
+                    className={`chip transition-colors ${selected.has(i) ? "border-volt/50 bg-volt/15 text-volt" : "line-through opacity-60"}`}
+                  >
+                    {selected.has(i) ? "✓ " : ""}
+                    {row.name}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="btn-primary w-full"
+                disabled={pending || selected.size === 0}
+                onClick={addSelected}
+              >
+                {pending ? "Sumando…" : `➕ Sumar ${plural(selected.size, "piloto", "pilotos")} a la liga`}
+              </button>
+            </div>
           )}
         </div>
       )}

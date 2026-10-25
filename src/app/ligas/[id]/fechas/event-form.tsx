@@ -37,9 +37,17 @@ export function EventForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Pilotos sumados desde la foto, hasta que la página se actualice con la lista nueva.
+  const [addedDrivers, setAddedDrivers] = useState<Driver[]>([]);
+  const allDrivers = [...drivers, ...addedDrivers.filter((a) => !drivers.some((d) => d.id === a.id))];
 
-  const driverName = (id: string) => drivers.find((d) => d.id === id)?.name ?? "?";
-  const waiting = drivers.filter((d) => !rows.some((r) => r.driverId === d.id));
+  const driverName = (id: string) => allDrivers.find((d) => d.id === id)?.name ?? "?";
+  const waiting = allDrivers.filter((d) => !rows.some((r) => r.driverId === d.id));
+
+  function importRows(imported: Row[], added: Driver[] = []) {
+    if (added.length) setAddedDrivers((prev) => [...prev, ...added]);
+    setRows(imported);
+  }
 
   function move(index: number, delta: number) {
     const target = index + delta;
@@ -94,7 +102,7 @@ export function EventForm({
 
       <section className="flex flex-col gap-3">
         <h2 className="section-title">Orden de llegada</h2>
-        {photoEnabled && <PhotoImport leagueId={leagueId} onImport={setRows} />}
+        {photoEnabled && <PhotoImport leagueId={leagueId} onImport={importRows} />}
         {rows.length === 0 && (
           <p className="text-sm text-muted">Tocá a los pilotos abajo en el orden en que cruzaron la meta.</p>
         )}

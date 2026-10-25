@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { PhotoReadError, readResultsPhoto } from "@/lib/ai/gemini";
 import { getMemberLeague } from "@/lib/league-data";
 import { matchDrivers } from "@/lib/match-drivers";
+import { tidyName } from "@/lib/names";
 import { createClient } from "@/lib/supabase/server";
 
 export type ActionState = { error: string | null };
@@ -155,19 +156,19 @@ export async function joinLeague(code: string) {
   redirect(`/ligas/${leagueId}`);
 }
 
-export type PhotoResult =
-  | { error: string }
-  | {
-      error: null;
-      /** Filas para el formulario, en orden de llegada. */
-      rows: { driverId: string; lap: string }[];
-      /** Nombres de la planilla que no coinciden con ningún piloto de la liga. */
-      unmatched: string[];
-    };
+export type PhotoRow = {
+  /** Nombre tal como está en la planilla. */
+  name: string;
+  lap: string;
+  /** Piloto de la liga que le corresponde, o null si no está en la liga. */
+  driverId: string | null;
+};
+
+export type PhotoResult = { error: string } | { error: null; rows: PhotoRow[] };
 
 const MAX_PHOTO_BYTES = 2.5 * 1024 * 1024;
 
-/** Lee una foto de la planilla con IA y devuelve el orden de llegada para completar el formulario. */
+/** Lee una foto de la planilla con IA y devuelve todas las filas, en orden de llegada. */
 export async function readEventPhoto(leagueId: string, formData: FormData): Promise<PhotoResult> {
   const league = await getMemberLeague(leagueId);
   if (!league?.isAdmin) return { error: "Solo el admin de la liga puede cargar fechas." };
@@ -186,15 +187,53 @@ export async function readEventPhoto(leagueId: string, formData: FormData): Prom
     const matches = matchDrivers(read, league.data.drivers);
     return {
       error: null,
-      rows: read.flatMap((row, i) => {
-        const driver = matches[i];
-        return driver ? [{ driverId: driver.id, lap: row.bestLap?.replace(",", ".") ?? "" }] : [];
-      }),
-      unmatched: read.filter((_, i) => !matches[i]).map((row) => row.name),
+      rows: read.map((row, i) => ({
+        name: row.name,
+        lap: row.bestLap?.replace(",", ".") ?? "",
+        driverId: matches[i]?.id ?? null,
+      })),
     };
   } catch (error) {
     if (error instanceof PhotoReadError) return { error: error.message };
     console.error(error);
     return { error: "No pudimos leer la foto. Probá de nuevo o cargala a mano." };
   }
+}
+
+export type AddedDriver = { readName: string; id: string; name: string };
+
+/** Suma a la liga a los pilotos de la planilla que no estaban. Devuelve los creados, con el nombre leído de cada uno. */
+export async function addPhotoDrivers(
+  leagueId: string,
+  readNames: string[],
+): Promise<{ error: string } | { error: null; drivers: AddedDriver[] }> {
+  const league = await getMemberLeague(leagueId);
+  if (!league?.isAdmin) return { error: "Solo el admin de la liga puede sumar pilotos." };
+
+  // Sin repetir nombres, ni entre ellos ni con los pilotos que ya están en la liga.
+  const taken = new Set(league.data.drivers.map((d) => d.name.toLowerCase()));
+  const toCreate: { readName: string; name: string }[] = [];
+  for (const readName of readNames) {
+    const name = tidyName(readName);
+    if (!name || taken.has(name.toLowerCase())) continue;
+    taken.add(name.toLowerCase());
+    toCreate.push({ readName, name });
+  }
+  if (toCreate.length === 0) return { error: null, drivers: [] };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("drivers")
+    .insert(toCreate.map((d) => ({ league_id: leagueId, name: d.name })))
+    .select("id, name");
+  if (error) return { error: friendlyError(error) };
+
+  revalidatePath(`/ligas/${leagueId}`);
+  return {
+    error: null,
+    drivers: toCreate.flatMap((d) => {
+      const created = data.find((row) => row.name === d.name);
+      return created ? [{ readName: d.readName, id: created.id, name: created.name }] : [];
+    }),
+  };
 }
